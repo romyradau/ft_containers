@@ -70,7 +70,4 @@ dkms.conf
 *.log
 
 #ignore tester
-containers_test
-containers_test_repo
-tester_utils
-ft_container-terminator
+ft_containers-terminator
