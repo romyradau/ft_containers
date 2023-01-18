@@ -3,10 +3,14 @@
 #include <iostream>
 #include <memory>
 //for std::allocator
+#include <limits>
+#include <cstddef>
+//ptrdiff_t
 #include <algorithm>
 #include <cstdlib>
 #include <stdexcept>
 #include <iterator>
+#include "VectorIterator.hpp" 
 
 namespace ft{
 	//TODO:geht das so oder muss ich's normal eingliedern?
@@ -28,6 +32,9 @@ namespace ft{
 		typedef	const value_type*					const_pointer;
 
 		//extra header for the iterators
+		using iterator = vec_iterator<value_type>;
+		//das ist die gleiche schreibweise nur andersrum
+		//links alias rechst typedef		 
 		// typedef ft::vec_iterator<value_type>		iterator;
 		// typedef ft::vec_iterator<const value_type>	const_iterator;
 		// typedef	ft::vec_iterator<value_type>		reverse_iterator;
@@ -55,10 +62,12 @@ namespace ft{
 
 	//functions needed for testing
 			size_type 		size() const{return this->_size;}
+			size_type 		max_size() const {return this->_alloc.max_size();}//possible allocatable space
+			// void 			resize (size_type n, value_type val = value_type());
+			void 			reserve (size_type n);
 			reference 		operator[](size_type n){return this->_pointer[n];}
 			const_reference operator[](size_type n) const{return this->_pointer[n];}
-			void clear();
-			void reserve (size_type n);
+			void 			clear();
 			// Portable programs should never call this function with an argument n that is out of range, since this causes undefined behavior.
 
 
@@ -89,7 +98,7 @@ namespace ft{
 			this->_alloc.construct(_pointer + i, val);
 	}
 
-	//shallow copy constructor
+	//shallow copy constructor - ain't shallow, goes to assign= which goes directs to reserve function, which allocates
 	template<typename T, class Alloc>
 	Vector<T, Alloc>::Vector(const Vector& x){
 		_cap = 0;
@@ -98,8 +107,6 @@ namespace ft{
 		_pointer = NULL;
 		*this = x;
 	}
-	//TODO: remember assign ist nicht implemented desween wird ne shallow copy gemacht udn deswegen fuckt malloc ab
-	//wenn du dann mal operator= hast dann kannst du dir damit selbst beweisen ob das ne deep copy ist oder nciht!
 
 	//ASSIGN CONTENT WITH FUNCTIONS
 	// template<typename T, class Alloc>
