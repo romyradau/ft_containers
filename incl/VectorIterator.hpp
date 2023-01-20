@@ -18,8 +18,8 @@ namespace ft{
 	template<typename T>//will be put as parameter next to class declaration
 	class vec_iterator{
 		// C++ expects some properties from an iterator:
+		//Tags are used to select the most efficient algorithm if your container is passed to one of the Standard Library functions from the <algorithm> library
 		using value_type		= T
-		// using value_type = typename Vector::value_type
 		using pointer			= value_type*;
 		using const_pointer		= const pointer;
 		using reference			= value_type&;
@@ -27,8 +27,8 @@ namespace ft{
 		using difference_type 	= std::ptrdiff_t;// It is a type able to represent the result of any valid pointer subtraction operation.
 		using iterator_category = std::random_access_iterator_tag;// Empty class to identify the category of an iterator as a random-access iterator:
 		using const_iterator	= vec_iterator< const value_type >;
-
-    	// typedef Category  iterator_category;
+    	
+		// typedef Category  iterator_category;
 		// typedef T		  value_type;
     	// typedef Pointer   pointer;
     	// typedef Reference reference;
@@ -37,9 +37,9 @@ namespace ft{
 		// https://cplusplus.com/reference/iterator/RandomAccessIterator/
 		public:
 			// vec_iterator(void): it_ptr() {}//not sure if needed
-			vec_iterator(pointer ptr): it_ptr(ptr) {}
+			vec_iterator(pointer ptr)				: it_ptr(ptr) {}
 			TODO://wie sieht das nochmal ausgeschrieben aus?
-			vec_iterator(vec_iterator const & src) : it_ptr(src.it_ptr) {}
+			vec_iterator(vec_iterator const & src)	: it_ptr(src.it_ptr) {}
 			vec_iterator& 				operator=(vec_iterator const & rhs) {
 										if (this != &rhs)
 											this->it_ptr = rhs.it_ptr;
@@ -47,25 +47,46 @@ namespace ft{
 			}
 			//TODO:wie kann man das in einer Zeile schreiben?
 			~vec_iterator(void) {}
-  			bool 						operator==(vec_iterator const & rhs) const {return it_ptr==rhs.it_ptr;}//goes to the bool==operator of teh pointer object
-  			bool 						operator!=(vec_iterator const & rhs) const {return it_ptr!=rhs.it_ptr;}
+  			bool 						operator==(vec_iterator const & r) const {return it_ptr==r.it_ptr;}//goes to the bool==operator of teh pointer object
+  			bool 						operator!=(vec_iterator const & r) const {return it_ptr!=r.it_ptr;}
+			//fuer den selben it
+  			bool 						operator<(vec_iterator const & r) const {return it_ptr!=r.it_ptr;}
+  			bool 						operator>(vec_iterator const & r) const {return it_ptr!=r.it_ptr;}
+  			bool 						operator!=(vec_iterator const & r) const {return it_ptr!=r.it_ptr;}
+  			bool 						operator!=(vec_iterator const & r) const {return it_ptr!=r.it_ptr;}
+			//da werden trotzdeme 2 reineggeben.... also ist das heir unnnoetig
+
 			pointer						operator->() {return it_ptr;}
+			const_pointer				operator->()const {return const it_ptr;}
 			reference 					operator*() {return *it_ptr;}
-			//*a = t
+			const_reference				operator*()const {return const *it_ptr;}
   			vec_iterator& 				operator++() {++it_ptr;return *this;}
   			vec_iterator 				operator++(int) {vec_iterator tmp(*this); operator++(); return tmp;}//post operator//returns a copy of the it, bc the object in place should not be modified
 			vec_iterator& 				operator--() {--it_ptr;return *this;}
   			vec_iterator 				operator--(int) {vec_iterator tmp(*this); operator--(); return tmp;}
-			//*a++, *a--
-			//a + n, n + a, a - n, a - b
-			//a < b,a > b,a <= b,a >= b
 			reference 					operator[](int index) {return *(it_ptr + index);}
+			const_reference 			operator[](int index)const {return const *(it_ptr + index);}
 			vec_iterator& 				operator+=(difference_type n) {this.it_ptr += n; return *this}
 			vec_iterator& 				operator-=(difference_type n) {this.it_ptr -= n; return *this}
-    		vec_iterator  				operator+ (difference_type n) const {return vec_iterator(this->it_ptr + n);}
-    		vec_iterator 				operator- (difference_type n) const {return vec_iterator(this->it_ptr - n);}
-    		// vec_iterator 				base() const {return this->it_ptr;}
+    		vec_iterator  				operator+(difference_type n) const {return vec_iterator(this->it_ptr + n);}
+    		vec_iterator 				operator-(difference_type n) const {return vec_iterator(this->it_ptr - n);}
+    		// difference_type				operator-(vec_iterator const & r) const {return vec_iterator(return l.base() - r.base();}
 
+    		vec_iterator 				base() const {return this->it_ptr;}
+			//getter function
+			friend bool					operator==(const vec_iterator l, const vec_iterator r) {return l.base() == r.base();}
+			friend bool					operator!=(const vec_iterator l, const vec_iterator r) {return l.base() != r.base();}
+			//fuer zwei verschiedene it
+			friend bool					operator>(const vec_iterator l, const vec_iterator r) {return l.base() > r.base();}
+			friend bool					operator>=(const vec_iterator l, const vec_iterator r) {return l.base() >= r.base();}
+			friend bool					operator<(const vec_iterator l, const vec_iterator r) {return l.base() < r.base();}
+			friend bool					operator<=(const vec_iterator l, const vec_iterator r) {return l.base() <= r.base();}
+			// friend difference_type		operator-(const vec_iterator l, const vec_iterator r) {return l.base() - r.base();}
+			// friend vec_iterator		operator+(const vec_iterator l, ) {return l.base() + r.base();}
+			// check die letzten drei nicht  - - + :(((())))
+
+			//a < b,a > b,a <= b,a >= b
+			//friend for the non member overloads, if them both parameters don't get changed by the function
 
 			TODO://which ones are missing?
 			//TODO: was macht diese base function genau?
@@ -74,5 +95,5 @@ namespace ft{
 		private:
 			pointer	it_ptr;
 
-	}
-} 
+	};
+}
