@@ -1,4 +1,6 @@
 #include "romyVector.hpp"
+#include "vectorIterator.hpp" 
+#include "iteratorTraits.hpp"
 #include <vector>
 // #define Vector std::vector
 
@@ -33,7 +35,8 @@ int main(){
 	std::cout << first.size() <<std::endl;
 	first.clear();
 	std::cout << first.size() <<std::endl;
-
+	std::cout << "---------------"<< std::endl; 
+	Vector<int>::iterator it();
 
 
 

@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <iterator>
-#include "VectorIterator.hpp" 
+#include "vectorIterator.hpp" 
 
 namespace ft{
 	//TODO:geht das so oder muss ich's normal eingliedern?
@@ -32,7 +32,7 @@ namespace ft{
 		typedef	const value_type*					const_pointer;
 
 		//extra header for the iterators
-		using iterator = vec_iterator<value_type>;
+		typedef	vec_iterator<value_type> 			iterator;
 		//das ist die gleiche schreibweise nur andersrum
 		//links alias rechst typedef		 
 		// typedef ft::vec_iterator<value_type>		iterator;
