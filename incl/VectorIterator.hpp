@@ -46,8 +46,8 @@ namespace ft{
   			vec_iterator 				operator++(int) {vec_iterator tmp(*this); operator++(); return tmp;}//post operator//returns a copy of the it, bc the object in place should not be modified
 			vec_iterator& 				operator--() {--it_ptr;return *this;}
   			vec_iterator 				operator--(int) {vec_iterator tmp(*this); operator--(); return tmp;}
-			reference 					operator[](int index) {return *(it_ptr + index);}
-			const_reference 			operator[](int index)const {return *(it_ptr + index);}
+			reference 					operator[](difference_type n) {return *(it_ptr + n);}
+			const_reference 			operator[](difference_type n)const {return *(it_ptr + n);}
 			vec_iterator& 				operator+=(difference_type n) {this->it_ptr += n; return *this;}
 			vec_iterator& 				operator-=(difference_type n) {this->it_ptr -= n; return *this;}
     		vec_iterator  				operator+(difference_type n) const {return vec_iterator(this->it_ptr + n);}
