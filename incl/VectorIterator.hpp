@@ -18,18 +18,18 @@ namespace ft{
 	class vec_iterator{
 		// C++ expects some properties from an iterator:
 		//Tags are used to select the most efficient algorithm if your container is passed to one of the Standard Library functions from the <algorithm> library
-		typedef T									value_type;
-		typedef value_type*							pointer;
-		typedef const pointer 						const_pointer;
-		typedef value_type&							reference;
-		typedef const value_type&					const_reference;
-		typedef std::ptrdiff_t						difference_type;// It is a type able to represent the result of any valid pointer subtraction operation.
-		typedef std::random_access_iterator_tag		iterator_category;// Empty class to identify the category of an iterator as a random-access iterator
-		typedef vec_iterator< const value_type >	const_iterator;
+		public:
+			typedef T									value_type;
+			typedef value_type*							pointer;
+			typedef const pointer 						const_pointer;
+			typedef value_type&							reference;
+			typedef const value_type&					const_reference;
+			typedef std::ptrdiff_t						difference_type;// It is a type able to represent the result of any valid pointer subtraction operation.
+			typedef std::random_access_iterator_tag		iterator_category;// Empty class to identify the category of an iterator as a random-access iterator
+			typedef vec_iterator< const value_type >	const_iterator;
 
 		// https://cplusplus.com/reference/iterator/RandomAccessIterator/
 		// https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator
-		public:
 			vec_iterator(void): it_ptr() {}//not sure if needed
 			vec_iterator(pointer ptr)				: it_ptr(ptr) {}
 			//TODO://wie sieht das nochmal ausgeschrieben aus?

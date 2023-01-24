@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <iterator>
 #include "vectorIterator.hpp" 
+#include "reverseIterator.hpp"
 
 namespace ft{
 	//TODO:geht das so oder muss ich's normal eingliedern?
@@ -32,7 +33,10 @@ namespace ft{
 		typedef	const value_type*					const_pointer;
 
 		//extra header for the iterators
-		typedef	vec_iterator<value_type> 			iterator;
+		typedef	ft::vec_iterator<value_type> 			iterator;
+		typedef ft::vec_iterator<const value_type>		const_iterator;
+		typedef ft::reverse_iterator<iterator>			reverse_iterator;
+		typedef ft::reverse_iterator<const_iterator>	const_reverse_iterator;
 		//das ist die gleiche schreibweise nur andersrum
 		//links alias rechst typedef		 
 		// typedef ft::vec_iterator<value_type>		iterator;
@@ -60,14 +64,25 @@ namespace ft{
 			Vector& operator= (const Vector& x);
 			~Vector();
 
+			/*ITERATOR*/
+			iterator			begin(){return iterator(this->_pointer);}
+			iterator			begin()const {return const_iterator(this->_pointer);}
+			iterator			end(){return iterator(this->_pointer + _size);}
+			iterator			end()const {return const_iterator(this->_pointer + _size);}
+			reverse_iterator	rbegin(){return reverse_iterator(end());}
+			reverse_iterator	rbegin()const {return const_reverse_iterator(end());}
+			reverse_iterator	rend(){return reverse_iterator(begin());}
+			reverse_iterator	rend()const{return const_reverse_iterator(begin());}
+			//USES THE FUNCTION RESULT AS PARAM FOR THE CINSTRUCTORS
+			
 	//functions needed for testing
 			size_type 		size() const{return this->_size;}
 			size_type 		max_size() const {return this->_alloc.max_size();}//possible allocatable space
 			// void 			resize (size_type n, value_type val = value_type());
-			void 			reserve (size_type n);
 			reference 		operator[](size_type n){return this->_pointer[n];}
 			const_reference operator[](size_type n) const{return this->_pointer[n];}
 			void 			clear();
+			void 			reserve (size_type n);
 			// Portable programs should never call this function with an argument n that is out of range, since this causes undefined behavior.
 
 

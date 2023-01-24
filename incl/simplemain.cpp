@@ -38,6 +38,7 @@ int main(){
 	std::cout << first.size() <<std::endl;
 	std::cout << "---------------"<< std::endl; 
 	Vector<int>::iterator it;
+	reverse_iterator<Vector<int>::iterator> rev_it;
 
 
 
