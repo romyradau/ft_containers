@@ -49,9 +49,9 @@ namespace ft{
 
 		private:
 			size_type								_cap; //avaialble space
-			size_type								_size; //actual space
-			allocator_type							_alloc; //allocator object used by vector
-			pointer									_pointer; //pointer to vector
+			size_type								_size; //actual space//end
+			allocator_type							_alloc; //allocator object used by Vector
+			pointer									_pointer; //pointer to Vector
 
 		public:
 			explicit Vector (const allocator_type& alloc = allocator_type());
@@ -78,20 +78,29 @@ namespace ft{
 	//functions needed for testing
 			size_type 		size() const{return this->_size;}
 			size_type 		max_size() const {return this->_alloc.max_size();}//possible allocatable space
+			void 			resize (size_type n, value_type val = value_type());
 			// void 			resize (size_type n, value_type val = value_type());
 			reference 		operator[](size_type n){return this->_pointer[n];}
 			const_reference operator[](size_type n) const{return this->_pointer[n];}
 			void 			clear();
 			void 			reserve (size_type n);
+			void 			swap (Vector& x);
+			
 			// Portable programs should never call this function with an argument n that is out of range, since this causes undefined behavior.
+			iterator erase (iterator position);
+			iterator erase (iterator first, iterator last);
+			iterator insert (iterator position, const value_type& val);
+			void 	insert (iterator position, size_type n, const value_type& val);
+			template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last);
 
 
+			allocator_type get_allocator() const{return this->_alloc;}
 	};
 
-	//CINSTRUCT VECTOR
+	//CINSTRUCT Vector
 	//Constructs an empty container, with no elements.
 	//allocator_type() ruft den constructor vom std::allocator auf
-	//TODO:die schreibweise, den Zusammenhang verstehe ich nicht, warum muss ich bei vector <T, Alloc> angeben??
+	//TODO:die schreibweise, den Zusammenhang verstehe ich nicht, warum muss ich bei Vector <T, Alloc> angeben??
 	template<typename T, class Alloc>
 	Vector<T, Alloc>::Vector(const allocator_type &alloc){
 		_cap = 0;
@@ -102,7 +111,7 @@ namespace ft{
 	}
 
 	//Constructs a container with n elements. Each element is a copy of val.
-	//mit value_type() ist T vom vector gemeint == hier werden z.b. 5, int allociert
+	//mit value_type() ist T vom Vector gemeint == hier werden z.b. 5, int allociert
 	template<typename T, class Alloc>
 	Vector<T, Alloc>::Vector(size_type n, const value_type& val, const allocator_type &alloc){
 		_cap = n;
@@ -135,7 +144,7 @@ namespace ft{
 	//Assigns new contents to the container, replacing its current contents, and modifying its size accordingly.
 	template<typename T, class Alloc>
 	Vector<T, Alloc> &Vector<T, Alloc>::operator=(const Vector<T, Alloc>& x){
-		clear();//Removes all elements from the vector (which are destroyed), leaving the container with a size of 0.
+		clear();//Removes all elements from the Vector (which are destroyed), leaving the container with a size of 0.
 		if (this->_cap < x._size)
 			reserve(x._cap);
 		this->_size = x._size;
@@ -144,13 +153,23 @@ namespace ft{
 		return *this;
 	}
 
-	//VECTOR DESTRUCTOR
+	//Vector DESTRUCTOR
 	template<typename T, class Alloc>
 	Vector<T, Alloc>::~Vector(){
 		for(size_t i = 0; i < this->_size; i++)
 			this->_alloc.destroy(&this->_pointer[i]); //destroyed aber noch nicht deallocated
 		this->_alloc.deallocate(this->_pointer, this->_cap); // braucht kein [], deallocated so viele items wie einsta allocated
 	}
+
+	template<typename T, class Alloc>
+	void 			Vector<T, Alloc>::resize (size_type n, value_type val){
+		if (n < this->size()){
+
+			for(size_type i = this->size(); n < i; n++)
+				this->_alloc.destroy(this->_pointer + n);
+		}
+	}
+
 
 	template<typename T, class Alloc>
 	void 		Vector<T, Alloc>::clear(){
@@ -175,6 +194,129 @@ namespace ft{
 			this->_cap = n;
 			this->_pointer = tmp;
 		}
+	}
+
+	template <class T>
+	void helper_swap ( T& a, T& b ){
+	  T c(a);
+	  a=b;
+	  b=c;
+	}
+	
+	template<typename T, class Alloc>
+	void Vector<T, Alloc>::swap (Vector<T, Alloc>& x){
+		ft::helper_swap(this->_alloc, x._alloc);
+		ft::helper_swap(this->_cap, x._cap);
+		ft::helper_swap(this->_poinetr, x._pointer);
+		ft::helper_swap(this->_size, x._size);
+
+	}
+
+	// template<typename T, class Alloc>
+	// Vector<T, Alloc>::iterator Vector<T, Alloc>::insert (iterator position, const value_type& val){
+
+	// }
+	
+
+	// template<typename T, class Alloc>
+	// void 	Vector<T, Alloc>::insert (iterator position, size_type n, const value_type& val){
+
+	// }
+
+	// template<typename T, class Alloc>
+	// template<class InputIterator>
+	// void Vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last){
+
+	// }
+
+	template <class T, class Alloc>  
+	bool operator== (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+//check sizes, then compare
+		if (lhs.size() == rhs.size())
+			return (equal(lhs.begin(), lhs.end(), rhs.begin()));
+		return false;
+	}
+
+
+	template <class T, class Alloc>
+	bool operator!= (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+		return !(lhs == rhs);
+	}
+
+
+	template <class T, class Alloc>
+	bool operator<  (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+	}
+
+
+	template <class T, class Alloc>
+	bool operator<= (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+		return(lhs < rhs);
+		//true???
+	}
+
+
+	template <class T, class Alloc>
+	bool operator>  (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+		return !(lhs < rhs);
+	}
+
+
+	template <class T, class Alloc>
+	bool operator>= (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+		return !(lhs < rhs);
+
+	}
+
+/* true if all the elements in the range [first1,last1) compare equal to those of the range starting at first2, and false otherwise.*/
+	template <class InputIterator1, class InputIterator2>
+  	bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 ){
+	  while (first1!=last1) {
+	    if (!(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
+	      return false;
+	    ++first1; ++first2;
+	  }
+	  return true;
+	}
+
+	template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+	bool equal (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred){
+			  while (first1!=last1) {
+	    if (!pred(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
+	      return false;
+	    ++first1; ++first2;
+	  }
+	  return true;
+	}
+	/*Lexicographical order is nothing but the dictionary order or preferably the order in which words appear in the dictonary. For example, let's take three strings, "short", "shorthand" and "small". In the dictionary, "short" comes before "shorthand" and "shorthand" comes before "small". This is lexicographical order.*/
+	template <class InputIterator1, class InputIterator2>
+	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2){
+  		while (first1!=last1)
+  		{
+  		  if (first2==last2 || *first2<*first1) return false;
+  		  else if (*first1<*first2) return true;
+  		  ++first1; ++first2;
+  		}
+  		return (first2!=last2);
+	}
+
+
+	template <class InputIterator1, class InputIterator2, class Compare>
+	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp){
+  		while (first1!=last1)
+  		{
+  		  if (comp(first2==last2 || *first2<*first1)) return false;
+  		  else if (comp(*first1<*first2)) return true;
+  		  ++first1; ++first2;
+  		}
+  		return (first2!=last2);
+	}
+/*After the call to this member function, the elements in x are those which were in y before the call, and the elements of y are those which were in x.*/
+	template <class T, class Alloc>
+	void swap (Vector<T,Alloc>& x, Vector<T,Alloc>& y){
+		x.swap(y);
+
 	}
 
 
