@@ -58,7 +58,7 @@ namespace ft{
 			explicit Vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type());
 
 			//TODO: den vielleicht erst nach IteratorImplementierung?
-			// template <class InputIterator>         Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
+			template <class InputIterator>         Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
 			Vector (const Vector& x);
 
 			Vector& operator= (const Vector& x);
@@ -92,6 +92,9 @@ namespace ft{
 			iterator insert (iterator position, const value_type& val);
 			void 	insert (iterator position, size_type n, const value_type& val);
 			template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last);
+			template <class InputIterator>  void assign (InputIterator first, InputIterator last);
+			void assign (size_type n, const value_type& val);
+			void push_back (const value_type& val);
 
 
 			allocator_type get_allocator() const{return this->_alloc;}
@@ -162,6 +165,32 @@ namespace ft{
 	}
 
 	template<typename T, class Alloc>
+	void Vector<T, Alloc>::push_back (const value_type& val){
+		if (this->_size != _cap){
+			this->_alloc.construct(this->_pointer + this->_size, val)
+			this->_size++;
+		}
+		else{
+			reserve(new_capacity(this->_size + 1));
+			this->_alloc.construct(this->_pointer + this->_size, val);
+			this->_size++;
+		}
+			
+	}
+	template<typename T, class Alloc>
+	void Vector<T, Alloc>::assign (size_type n, const value_type& val){
+
+	}
+
+	template <class InputIterator>
+	void Vector<T, Alloc>::assign (InputIterator first, InputIterator last){
+		clear();
+		for (; first != last, first++)
+			this->push_back(*first);
+	}
+	//TODO: ft::enable if und so ...
+
+	template<typename T, class Alloc>
 	void 			Vector<T, Alloc>::resize (size_type n, value_type val){
 		if (n < this->size()){
 
@@ -194,6 +223,15 @@ namespace ft{
 			this->_cap = n;
 			this->_pointer = tmp;
 		}
+	}
+
+	template<typename T, class Alloc>
+	size_type	new_capacity(size_type old_cap){
+		size_type n;
+		n = 1;
+		while (n < old_cap)
+			n *= 2;
+		return n;
 	}
 
 	template <class T>
