@@ -22,7 +22,7 @@ namespace ft{
 			//constructoren wollen die priv_memeber direkt und nicht per getter function!
 			~reverse_iterator(void) {}
 			//good practice
-    		iterator_type 				base() const {return this->m_it;}
+    		pointer 					base() const {return this->m_it;}
 			reference 					operator*() const {IT tmp = this->base(); return *(--tmp);}
 			pointer						operator->() const {return &(operator*());}
     		reverse_iterator  			operator+(difference_type n) const {return reverse_iterator(this->base() - n);}

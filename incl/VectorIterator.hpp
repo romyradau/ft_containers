@@ -36,7 +36,7 @@ namespace ft{
 			vec_iterator(vec_iterator const & src)	: it_ptr(src.it_ptr) {}
 			vec_iterator& 				operator=(vec_iterator const & rhs) {if (this != &rhs) this->it_ptr = rhs.it_ptr;return *this;}
 			~vec_iterator(void) {}
-    		vec_iterator 				base() const {return this->it_ptr;}
+    		pointer 					base() const { return this->it_ptr;}
 			//getter function
 			pointer						operator->() {return it_ptr;}
 			const_pointer				operator->()const {return (it_ptr);}
@@ -53,7 +53,7 @@ namespace ft{
     		vec_iterator  				operator+(difference_type n) const {return vec_iterator(this->it_ptr + n);}
     		vec_iterator 				operator-(difference_type n) const {return vec_iterator(this->it_ptr - n);}
 			friend bool					operator==(const vec_iterator l, const vec_iterator r) {return l.base() == r.base();}
-			friend bool					operator!=(const vec_iterator l, const vec_iterator r) {return l.base() != r.base();}
+			friend bool					operator!=(const vec_iterator l, const vec_iterator r) {return (l.base() != r.base());}
 			friend bool					operator>(const vec_iterator l, const vec_iterator r) {return l.base() > r.base();}
 			friend bool					operator>=(const vec_iterator l, const vec_iterator r) {return l.base() >= r.base();}
 			friend bool					operator<(const vec_iterator l, const vec_iterator r) {return l.base() < r.base();}

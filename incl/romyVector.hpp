@@ -12,6 +12,8 @@
 #include <iterator>
 #include "vectorIterator.hpp" 
 #include "reverseIterator.hpp"
+#include "typeTraits.hpp"
+
 
 namespace ft{
 	//TODO:geht das so oder muss ich's normal eingliedern?
@@ -53,12 +55,15 @@ namespace ft{
 			allocator_type							_alloc; //allocator object used by Vector
 			pointer									_pointer; //pointer to Vector
 
+			size_type	new_capacity(size_type old_cap);
+
+
 		public:
 			explicit Vector (const allocator_type& alloc = allocator_type());
 			explicit Vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type());
 
 			//TODO: den vielleicht erst nach IteratorImplementierung?
-			template <class InputIterator>         Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
+			// template <class InputIterator>         Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
 			Vector (const Vector& x);
 
 			Vector& operator= (const Vector& x);
@@ -76,6 +81,9 @@ namespace ft{
 			//USES THE FUNCTION RESULT AS PARAM FOR THE CINSTRUCTORS
 			
 	//functions needed for testing
+
+
+			size_type capacity() const{return this->_cap;}
 			size_type 		size() const{return this->_size;}
 			size_type 		max_size() const {return this->_alloc.max_size();}//possible allocatable space
 			void 			resize (size_type n, value_type val = value_type());
@@ -92,7 +100,8 @@ namespace ft{
 			iterator insert (iterator position, const value_type& val);
 			void 	insert (iterator position, size_type n, const value_type& val);
 			template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last);
-			template <class InputIterator>  void assign (InputIterator first, InputIterator last);
+			template <class InputIterator>  void assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0);
+			//so that the two functions can be distinguished
 			void assign (size_type n, const value_type& val);
 			void push_back (const value_type& val);
 
@@ -110,7 +119,6 @@ namespace ft{
 		_size = 0;
 		_alloc = alloc; //inbuilt it knows that it looks for std::allocator<T>
 		_pointer = NULL;
-		printf("hallo\n");
 	}
 
 	//Constructs a container with n elements. Each element is a copy of val.
@@ -165,28 +173,47 @@ namespace ft{
 	}
 
 	template<typename T, class Alloc>
+	typename Vector<T, Alloc>::size_type	Vector<T, Alloc>::new_capacity(size_type old_cap){
+		size_type n;
+		n = 1;
+		while (n < old_cap)
+			n *= 2;
+		return n;
+	}
+
+	template<typename T, class Alloc>
 	void Vector<T, Alloc>::push_back (const value_type& val){
+
 		if (this->_size != _cap){
-			this->_alloc.construct(this->_pointer + this->_size, val)
-			this->_size++;
+			this->_alloc.construct(this->_pointer + this->_size, val);
+			++this->_size;
 		}
 		else{
 			reserve(new_capacity(this->_size + 1));
 			this->_alloc.construct(this->_pointer + this->_size, val);
-			this->_size++;
+			++this->_size;
 		}
 			
 	}
 	template<typename T, class Alloc>
 	void Vector<T, Alloc>::assign (size_type n, const value_type& val){
-
+		clear();
+		for (size_type i = 0; i < n; i++)
+			push_back(val);
+		std::cout << "normal assign" <<std::endl;
 	}
 
+	template<typename T, class Alloc>
 	template <class InputIterator>
-	void Vector<T, Alloc>::assign (InputIterator first, InputIterator last){
+	void Vector<T, Alloc>::assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type*){
 		clear();
-		for (; first != last, first++)
+	typename InputIterator::difference_type range = last - first;
+		if (range > this->_cap)
+			reserve(range);
+		std::cout << "INPUTITERATOR aasign" << std::endl;
+		for (; first != last; first++){
 			this->push_back(*first);
+		}
 	}
 	//TODO: ft::enable if und so ...
 
@@ -223,15 +250,6 @@ namespace ft{
 			this->_cap = n;
 			this->_pointer = tmp;
 		}
-	}
-
-	template<typename T, class Alloc>
-	size_type	new_capacity(size_type old_cap){
-		size_type n;
-		n = 1;
-		while (n < old_cap)
-			n *= 2;
-		return n;
 	}
 
 	template <class T>
