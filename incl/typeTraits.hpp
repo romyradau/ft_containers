@@ -42,8 +42,6 @@ template <class T> struct __ft_is_integral						: public false_type {};
 		
 template < > struct __ft_is_integral <bool>						: public true_type {};
 template < > struct __ft_is_integral <char>						: public true_type {};
-template < > struct __ft_is_integral <char16_t>					: public true_type {};
-template < > struct __ft_is_integral <char32_t>					: public true_type {};
 template < > struct __ft_is_integral <wchar_t>					: public true_type {};
 template < > struct __ft_is_integral <signed char>				: public true_type {};
 template < > struct __ft_is_integral <short int>				: public true_type {};
