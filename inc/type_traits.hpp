@@ -1,5 +1,4 @@
-#ifndef __FT_TYPE_TRAITS_HPP_
-# define __FT_TYPE_TRAITS_HPP_
+#pragma once
 
 namespace ft { // NAMESPACE FT
 
@@ -59,5 +58,3 @@ class is_integral : public __ft_is_integral< T > {};
 /* ------------------------------------------------------------------------ */
 
 } // NAMESPACE FT
-
-#endif // __FT_TYPE_TRAITS_HPP_

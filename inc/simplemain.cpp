@@ -1,16 +1,16 @@
-#include "romyVector.hpp"
-#include "vectorIterator.hpp" 
-#include "iteratorTraits.hpp"
-#include "reverseIterator.hpp"
+#include "vector.hpp"
+#include "iterator.hpp" 
+#include "iterator_traits.hpp"
+#include "reverse_iterator.hpp"
 #include <vector>
-// #define Vector std::vector
+// #define vector std::vector
 
 
 
 using namespace ft;
-// extra function to print out our Vector with yet unknown type
+// extra function to print out our vector with yet unknown type
 template<typename T>
-void PrintVector( const Vector<T>& V){
+void Printvector( const vector<T>& V){
 	for( size_t i = 0; i < V.size(); i++)
 		std::cout << V[i] << std::endl;
 }
@@ -19,15 +19,15 @@ void PrintVector( const Vector<T>& V){
 
 int main(){
 
-	Vector<int> first;
-  	Vector<int> second (5,100);                       // four ints with value 100
-  	// Vector<int> third (second.begin(),second.end());  // iterating through second
-  	Vector<int> fourth (second);
+	vector<int> first;
+  	vector<int> second (5,100);                       // four ints with value 100
+  	// vector<int> third (second.begin(),second.end());  // iterating through second
+  	vector<int> fourth (second);
 	fourth.push_back(200);
 	fourth.push_back(300);
 	// first.assign(5, 5);
 	first.assign(second.begin(), second.end());
-	PrintVector(first);
+	Printvector(second);
 	std::cout << first.capacity() << std::endl;
 	// PRINT_POS;
 
@@ -37,18 +37,18 @@ int main(){
 	// // vector.PushBack("vector");
 
 	// std::cout << first.max_size()<< std::endl;                             // empty vector of ints
-	// PrintVector(second);
-	// PrintVector(fourth);
+	// Printvector(second);
+	// Printvector(fourth);
 	// second = first;
-	// PrintVector(second);
+	// Printvector(second);
 	// first.reserve(3);
 	// first = fourth;
 	// std::cout << first.size() <<std::endl;
 	// first.clear();
 	// std::cout << first.size() <<std::endl;
 	// std::cout << "---------------"<< std::endl; 
-	// Vector<int>::iterator it;
-	// reverse_iterator<Vector<int>::iterator> rev_it;
+	// vector<int>::iterator it;
+	// reverse_iterator<vector<int>::iterator> rev_it;
 
 
 

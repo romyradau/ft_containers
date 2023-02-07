@@ -10,9 +10,10 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <iterator>
-#include "vectorIterator.hpp" 
-#include "reverseIterator.hpp"
-#include "typeTraits.hpp"
+#include "iterator.hpp" 
+#include "reverse_iterator.hpp"
+#include "type_traits.hpp"
+#include "iterator_traits.hpp"
 
 
 namespace ft{
@@ -20,12 +21,11 @@ namespace ft{
 
 	//The typedef-names are aliases for existing types, and are not declarations of new types.
 	template<typename T, class Alloc = std::allocator<T> >
-	class Vector{
+	class vector{
 		public: 
 		typedef	T									value_type;
 		typedef	Alloc								allocator_type;
 		typedef	size_t								size_type;
-		
 		//originally allocator_type::reference why then value_type& and not Alloc&??
 		//->the standard default allocator, automatically returns &x
 		//so it's basically the same!
@@ -39,6 +39,7 @@ namespace ft{
 		typedef ft::vec_iterator<const value_type>		const_iterator;
 		typedef ft::reverse_iterator<iterator>			reverse_iterator;
 		typedef ft::reverse_iterator<const_iterator>	const_reverse_iterator;
+		typedef typename ft::iterator_traits<iterator>::difference_type						difference_type;
 		//das ist die gleiche schreibweise nur andersrum
 		//links alias rechst typedef		 
 		// typedef ft::vec_iterator<value_type>		iterator;
@@ -52,22 +53,22 @@ namespace ft{
 		private:
 			size_type								_cap; //avaialble space
 			size_type								_size; //actual space//end
-			allocator_type							_alloc; //allocator object used by Vector
-			pointer									_pointer; //pointer to Vector
+			allocator_type							_alloc; //allocator object used by vector
+			pointer									_pointer; //pointer to vector
 
 			size_type	new_capacity(size_type old_cap);
 
 
 		public:
-			explicit Vector (const allocator_type& alloc = allocator_type());
-			explicit Vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type());
+			explicit vector (const allocator_type& alloc = allocator_type());
+			explicit vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type());
 
 			//TODO: den vielleicht erst nach IteratorImplementierung?
-			// template <class InputIterator>         Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
-			Vector (const Vector& x);
+			template <class InputIterator>         vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(), typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0);
+			vector (const vector& x);
 
-			Vector& operator= (const Vector& x);
-			~Vector();
+			vector& operator= (const vector& x);
+			~vector();
 
 			/*ITERATOR*/
 			iterator			begin(){return iterator(this->_pointer);}
@@ -101,7 +102,7 @@ namespace ft{
 			void 				clear();
 			bool 				empty() const { return (!this->_size); }
 			void 				reserve (size_type n);
-			void 				swap (Vector& x);
+			void 				swap (vector& x);
 			
 			// Portable programs should never call this function with an argument n that is out of range, since this causes undefined behavior.
 			iterator erase (iterator position);
@@ -113,7 +114,7 @@ namespace ft{
 			void pop_back();
 			iterator insert(iterator pos, const_reference val);
 			void insert(iterator pos, size_type n, const_reference val);
-			template <class InputIterator> void insert(iterator pos, InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type* = NULL);
+			template <class InputIterator> void insert(iterator pos, InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type* = 0);
 
 
 
@@ -152,12 +153,12 @@ namespace ft{
 
 	};
 
-	//CINSTRUCT Vector
+	//CINSTRUCT vector
 	//Constructs an empty container, with no elements.
 	//allocator_type() ruft den constructor vom std::allocator auf
-	//TODO:die schreibweise, den Zusammenhang verstehe ich nicht, warum muss ich bei Vector <T, Alloc> angeben??
+	//TODO:die schreibweise, den Zusammenhang verstehe ich nicht, warum muss ich bei vector <T, Alloc> angeben??
 	template<typename T, class Alloc>
-	Vector<T, Alloc>::Vector(const allocator_type &alloc){
+	vector<T, Alloc>::vector(const allocator_type &alloc){
 		_cap = 0;
 		_size = 0;
 		_alloc = alloc; //inbuilt it knows that it looks for std::allocator<T>
@@ -165,9 +166,9 @@ namespace ft{
 	}
 
 	//Constructs a container with n elements. Each element is a copy of val.
-	//mit value_type() ist T vom Vector gemeint == hier werden z.b. 5, int allociert
+	//mit value_type() ist T vom vector gemeint == hier werden z.b. 5, int allociert
 	template<typename T, class Alloc>
-	Vector<T, Alloc>::Vector(size_type n, const value_type& val, const allocator_type &alloc){
+	vector<T, Alloc>::vector(size_type n, const value_type& val, const allocator_type &alloc){
 		_cap = n;
 		_size = n;	
 		_alloc = alloc; //inbuilt it knows that it looks for std::allocator<T>
@@ -178,7 +179,7 @@ namespace ft{
 
 	//shallow copy constructor - ain't shallow, goes to assign= which goes directs to reserve function, which allocates
 	template<typename T, class Alloc>
-	Vector<T, Alloc>::Vector(const Vector& x){
+	vector<T, Alloc>::vector(const vector& x){
 		_cap = 0;
 		_size = 0;
 		_alloc = allocator_type();//TODO:?
@@ -186,19 +187,22 @@ namespace ft{
 		*this = x;
 	}
 
-	//ASSIGN CONTENT WITH FUNCTIONS
-	// template<typename T, class Alloc>
-	// Vector<T, Alloc> &Vector<T, Alloc>::operator=(const Vector<T, Alloc>& x){
-	// 	if (*this != x)
-	// 		assign(x.begin(), x.end());
-	// 	return *this;
-	// }
+	template<typename T, class Alloc>
+	template <class InputIterator>
+	vector<T, Alloc>::vector (InputIterator first, InputIterator last, const allocator_type& alloc, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type*){
+		_cap = 0;
+		_size = 0;
+		_alloc = alloc; //inbuilt it knows that it looks for std::allocator<T>
+		_pointer = NULL;
+		this->assign(first, last);
+	}
+
 
 	//ASSIGN CONTENT WITHOUT
 	//Assigns new contents to the container, replacing its current contents, and modifying its size accordingly.
 	template<typename T, class Alloc>
-	Vector<T, Alloc> &Vector<T, Alloc>::operator=(const Vector<T, Alloc>& x){
-		clear();//Removes all elements from the Vector (which are destroyed), leaving the container with a size of 0.
+	vector<T, Alloc> &vector<T, Alloc>::operator=(const vector<T, Alloc>& x){
+		clear();//Removes all elements from the vector (which are destroyed), leaving the container with a size of 0.
 		if (this->_cap < x._size)
 			reserve(x._cap);
 		this->_size = x._size;
@@ -207,16 +211,16 @@ namespace ft{
 		return *this;
 	}
 
-	//Vector DESTRUCTOR
+	//vector DESTRUCTOR
 	template<typename T, class Alloc>
-	Vector<T, Alloc>::~Vector(){
+	vector<T, Alloc>::~vector(){
 		for(size_t i = 0; i < this->_size; i++)
 			this->_alloc.destroy(&this->_pointer[i]); //destroyed aber noch nicht deallocated
 		this->_alloc.deallocate(this->_pointer, this->_cap); // braucht kein [], deallocated so viele items wie einsta allocated
 	}
 
 	template<typename T, class Alloc>
-	typename Vector<T, Alloc>::size_type	Vector<T, Alloc>::new_capacity(size_type old_cap){
+	typename vector<T, Alloc>::size_type	vector<T, Alloc>::new_capacity(size_type old_cap){
 		size_type n;
 		n = 1;
 		while (n < old_cap)
@@ -225,7 +229,7 @@ namespace ft{
 	}
 
 	template<typename T, class Alloc>
-	void Vector<T, Alloc>::push_back (const value_type& val){
+	void vector<T, Alloc>::push_back (const value_type& val){
 
 		if (this->_size != _cap){
 			this->_alloc.construct(this->_pointer + this->_size, val);
@@ -239,7 +243,7 @@ namespace ft{
 			
 	}
 	template<typename T, class Alloc>
-	void Vector<T, Alloc>::pop_back(){
+	void vector<T, Alloc>::pop_back(){
 					if (this->_size > 0) {
 				--this->_size;
 				this->_alloc.destroy(this->_pointer + this->_size);
@@ -247,21 +251,21 @@ namespace ft{
 	}
 
 	template<typename T, class Alloc>
-	void Vector<T, Alloc>::assign (size_type n, const value_type& val){
+	void vector<T, Alloc>::assign (size_type n, const value_type& val){
 		clear();
+		if (n > this->_cap)
+			this->reserve(n);
 		for (size_type i = 0; i < n; i++)
 			push_back(val);
-		std::cout << "normal assign" <<std::endl;
 	}
 
 	template<typename T, class Alloc>
 	template <class InputIterator>
-	void Vector<T, Alloc>::assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type*){
+	void vector<T, Alloc>::assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type*){
 		clear();
-	typename InputIterator::difference_type range = last - first;
-		if (range > this->_cap)
+		difference_type range = last - first;
+		if ((size_type) range > this->_cap)
 			reserve(range);
-		std::cout << "INPUTITERATOR aasign" << std::endl;
 		for (; first != last; first++){
 			this->push_back(*first);
 		}
@@ -269,7 +273,7 @@ namespace ft{
 	//TODO: ft::enable if und so ...
 
 	template<typename T, class Alloc>
-	void 			Vector<T, Alloc>::resize (size_type n, value_type val){
+	void 			vector<T, Alloc>::resize (size_type n, value_type val){
 
 		if (n < size()) {
 			while (size() > n)
@@ -286,14 +290,14 @@ namespace ft{
 
 	// insert single element
 	template<typename T, class Alloc>
-	typename Vector<T, Alloc>::iterator Vector<T, Alloc>::insert(iterator pos, const_reference val) {
+	typename vector<T, Alloc>::iterator vector<T, Alloc>::insert(iterator pos, const_reference val) {
 		size_type res = pos - begin(); // NOTE: address change so you have to save it :)
 		this->insert(pos, 1, val);
 		return (iterator(this->_data + res));
 	}
 	// insert fill
 	template<typename T, class Alloc>
-	void Vector<T, Alloc>::insert(iterator pos, size_type n, const_reference val) {
+	void vector<T, Alloc>::insert(iterator pos, size_type n, const_reference val) {
 		size_type curr = pos - begin();
 		std::cout << curr << std::endl;
 		if (this->_size + n > this->_cap)
@@ -306,7 +310,7 @@ namespace ft{
 	// insert range
 	template<typename T, class Alloc>
 	template <class InputIterator>
-	void Vector<T, Alloc>::insert(iterator pos, InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type*)
+	void vector<T, Alloc>::insert(iterator pos, InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type*)
 	{
 		size_type curr = pos - begin();
 		size_type n = last - first;
@@ -318,7 +322,7 @@ namespace ft{
 		this->_size += n;
 	}
 	template<typename T, class Alloc>
-	typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase (iterator position){
+	typename vector<T, Alloc>::iterator vector<T, Alloc>::erase (iterator position){
 		iterator res = position;
 		if (position + 1 != end()) {
 		while (position + 1 != end()) {
@@ -331,7 +335,7 @@ namespace ft{
 	}
 
 	template<typename T, class Alloc>
-	typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase (iterator first, iterator last){
+	typename vector<T, Alloc>::iterator vector<T, Alloc>::erase (iterator first, iterator last){
 		size_type pos = first - begin();
 		size_type res = pos;
 		size_type n = last - first;
@@ -348,7 +352,7 @@ namespace ft{
 
 
 	template<typename T, class Alloc>
-	void 		Vector<T, Alloc>::clear(){
+	void 		vector<T, Alloc>::clear(){
 		//TODO: vielleicht muss heir noch ne if Bedingung hin??
 		for(size_t i = 0; i < this->_size; i++)
 			this->_alloc.destroy(this->_pointer + i);
@@ -357,19 +361,11 @@ namespace ft{
 
 
 	template<typename T, class Alloc>
-	void 		Vector<T, Alloc>::reserve(size_type n){
+	void 		vector<T, Alloc>::reserve(size_type n){
 		if (n > this->max_size())
 				throw std::length_error("length_error");
 		if (this->_cap < n){
-			pointer	tmp;
-			tmp = this->_alloc.allocate(n);
-			for (size_t i = 0; i < this->_size; i++){
-				this->_alloc.construct(tmp + i, this->_pointer[i]);
-				this->_alloc.destroy(this->_pointer + i);
-			}
-			this->_alloc.deallocate(this->_pointer, this->_cap);
-			this->_cap = n;
-			this->_pointer = tmp;
+			this->_realloc(n);
 		}
 	}
 
@@ -381,7 +377,7 @@ namespace ft{
 	}
 	
 	template<typename T, class Alloc>
-	void Vector<T, Alloc>::swap (Vector<T, Alloc>& x){
+	void vector<T, Alloc>::swap (vector<T, Alloc>& x){
 		ft::helper_swap(this->_alloc, x._alloc);
 		ft::helper_swap(this->_cap, x._cap);
 		ft::helper_swap(this->_poinetr, x._pointer);
@@ -390,24 +386,24 @@ namespace ft{
 	}
 
 	// template<typename T, class Alloc>
-	// Vector<T, Alloc>::iterator Vector<T, Alloc>::insert (iterator position, const value_type& val){
+	// vector<T, Alloc>::iterator vector<T, Alloc>::insert (iterator position, const value_type& val){
 
 	// }
 	
 
 	// template<typename T, class Alloc>
-	// void 	Vector<T, Alloc>::insert (iterator position, size_type n, const value_type& val){
+	// void 	vector<T, Alloc>::insert (iterator position, size_type n, const value_type& val){
 
 	// }
 
 	// template<typename T, class Alloc>
 	// template<class InputIterator>
-	// void Vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last){
+	// void vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last){
 
 	// }
 
 	template <class T, class Alloc>  
-	bool operator== (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 //check sizes, then compare
 		if (lhs.size() == rhs.size())
 			return (equal(lhs.begin(), lhs.end(), rhs.begin()));
@@ -416,19 +412,19 @@ namespace ft{
 
 
 	template <class T, class Alloc>
-	bool operator!= (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+	bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 		return !(lhs == rhs);
 	}
 
 
 	template <class T, class Alloc>
-	bool operator<  (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 	}
 
 
 	template <class T, class Alloc>
-	bool operator<= (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+	bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
         return !(rhs < lhs);
 
 		//true???
@@ -436,13 +432,13 @@ namespace ft{
 
 
 	template <class T, class Alloc>
-	bool operator>  (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+	bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 		return rhs < lhs;
 	}
 
 
 	template <class T, class Alloc>
-	bool operator>= (const Vector<T,Alloc>& lhs, const Vector<T,Alloc>& rhs){
+	bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 		return !(lhs < rhs);
 
 	}
@@ -492,7 +488,7 @@ namespace ft{
 	}
 /*After the call to this member function, the elements in x are those which were in y before the call, and the elements of y are those which were in x.*/
 	template <class T, class Alloc>
-	void swap (Vector<T,Alloc>& x, Vector<T,Alloc>& y){
+	void swap (vector<T,Alloc>& x, vector<T,Alloc>& y){
 		x.swap(y);
 
 	}
