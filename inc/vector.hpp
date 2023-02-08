@@ -72,13 +72,13 @@ namespace ft{
 
 			/*ITERATOR*/
 			iterator			begin(){return iterator(this->_pointer);}
-			iterator			begin()const {return const_iterator(this->_pointer);}
+			const_iterator			begin()const {return const_iterator(this->_pointer);}
 			iterator			end(){return iterator(this->_pointer + _size);}
-			iterator			end()const {return const_iterator(this->_pointer + _size);}
+			const_iterator			end()const {return const_iterator(this->_pointer + _size);}
 			reverse_iterator	rbegin(){return reverse_iterator(end());}
-			reverse_iterator	rbegin()const {return const_reverse_iterator(end());}
+			const_reverse_iterator	rbegin()const {return const_reverse_iterator(end());}
 			reverse_iterator	rend(){return reverse_iterator(begin());}
-			reverse_iterator	rend()const{return const_reverse_iterator(begin());}
+			const_reverse_iterator	rend()const{return const_reverse_iterator(begin());}
 			//USES THE FUNCTION RESULT AS PARAM FOR THE CINSTRUCTORS
 			
 	//functions needed for testing
@@ -95,8 +95,8 @@ namespace ft{
 			const_reference 	at(size_type idx) const { if (idx >= this->_size)  throw std::out_of_range("ft::out_of_range"); return (this->_pointer[idx]); }
 			reference 			front() { return (*(this->_pointer)); }
 			const_reference 	front() const { return (*(this->_pointer)); }
-			reference 			back() { return (*(this->_pointer + this->_size - 1)); }
-			const_reference 	back() const { return (*(this->_pointer + _size) - 1); }
+			reference 			back() { return (this->_pointer[this->_size - 1]); }
+			const_reference 	back() const { return (this->_pointer[this->_size - 1]); }
 			pointer 			data() { return (this->_pointer); }
 			const_pointer 		data() const { return (this->_pointer); }
 			void 				clear();
@@ -216,7 +216,8 @@ namespace ft{
 	vector<T, Alloc>::~vector(){
 		for(size_t i = 0; i < this->_size; i++)
 			this->_alloc.destroy(&this->_pointer[i]); //destroyed aber noch nicht deallocated
-		this->_alloc.deallocate(this->_pointer, this->_cap); // braucht kein [], deallocated so viele items wie einsta allocated
+		if (this->_pointer)
+			this->_alloc.deallocate(this->_pointer, this->_cap); // braucht kein [], deallocated so viele items wie einsta allocated
 	}
 
 	template<typename T, class Alloc>
@@ -263,9 +264,6 @@ namespace ft{
 	template <class InputIterator>
 	void vector<T, Alloc>::assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type*){
 		clear();
-		difference_type range = last - first;
-		if ((size_type) range > this->_cap)
-			reserve(range);
 		for (; first != last; first++){
 			this->push_back(*first);
 		}
@@ -293,7 +291,7 @@ namespace ft{
 	typename vector<T, Alloc>::iterator vector<T, Alloc>::insert(iterator pos, const_reference val) {
 		size_type res = pos - begin(); // NOTE: address change so you have to save it :)
 		this->insert(pos, 1, val);
-		return (iterator(this->_data + res));
+		return (iterator(this->_pointer + res));
 	}
 	// insert fill
 	template<typename T, class Alloc>
@@ -336,18 +334,17 @@ namespace ft{
 
 	template<typename T, class Alloc>
 	typename vector<T, Alloc>::iterator vector<T, Alloc>::erase (iterator first, iterator last){
-		size_type pos = first - begin();
-		size_type res = pos;
+		vector<T, Alloc>::iterator start = first;
+		// size_type res = pos;
 		size_type n = last - first;
 
-		for (;first != last; ++first)
-			this->_alloc.destroy(first.base());
-		for (; last != end(); ++last, ++pos) {
-			this->_alloc.construct(this->_data + pos, *last);
-			this->_alloc.destroy(last.base());
+		for (; (start + n) < end(); ++start)
+			*start = *(start + n);
+		for (; start != end(); ++start) {
+			this->_alloc.destroy(start.base());
 		}
 		this->_size -= n;
-		return (iterator(this->_data + res));
+		return (first);
 	}
 
 
@@ -380,7 +377,7 @@ namespace ft{
 	void vector<T, Alloc>::swap (vector<T, Alloc>& x){
 		ft::helper_swap(this->_alloc, x._alloc);
 		ft::helper_swap(this->_cap, x._cap);
-		ft::helper_swap(this->_poinetr, x._pointer);
+		ft::helper_swap(this->_pointer, x._pointer);
 		ft::helper_swap(this->_size, x._size);
 
 	}
@@ -401,6 +398,26 @@ namespace ft{
 	// void vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last){
 
 	// }
+/* true if all the elements in the range [first1,last1) compare equal to those of the range starting at first2, and false otherwise.*/
+	template <class InputIterator1, class InputIterator2>
+  	bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 ){
+	  while (first1!=last1) {
+	    if (!(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
+	      return false;
+	    ++first1; ++first2;
+	  }
+	  return true;
+	}
+
+	template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+	bool equal (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred){
+			  while (first1!=last1) {
+	    if (!pred(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
+	      return false;
+	    ++first1; ++first2;
+	  }
+	  return true;
+	}
 
 	template <class T, class Alloc>  
 	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
@@ -443,26 +460,6 @@ namespace ft{
 
 	}
 
-/* true if all the elements in the range [first1,last1) compare equal to those of the range starting at first2, and false otherwise.*/
-	template <class InputIterator1, class InputIterator2>
-  	bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 ){
-	  while (first1!=last1) {
-	    if (!(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
-	      return false;
-	    ++first1; ++first2;
-	  }
-	  return true;
-	}
-
-	template <class InputIterator1, class InputIterator2, class BinaryPredicate>
-	bool equal (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred){
-			  while (first1!=last1) {
-	    if (!pred(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
-	      return false;
-	    ++first1; ++first2;
-	  }
-	  return true;
-	}
 	/*Lexicographical order is nothing but the dictionary order or preferably the order in which words appear in the dictonary. For example, let's take three strings, "short", "shorthand" and "small". In the dictionary, "short" comes before "shorthand" and "shorthand" comes before "small". This is lexicographical order.*/
 	template <class InputIterator1, class InputIterator2>
 	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2){

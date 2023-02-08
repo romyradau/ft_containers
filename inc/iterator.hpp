@@ -30,8 +30,8 @@ namespace ft{
 
 		// https://cplusplus.com/reference/iterator/RandomAccessIterator/
 		// https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator
-			vec_iterator(void): it_ptr() {}//not sure if needed
-			vec_iterator(pointer ptr)				: it_ptr(ptr) {}
+			vec_iterator(): it_ptr(NULL) {}//not sure if needed
+			vec_iterator(pointer const ptr)				: it_ptr(ptr) {}
 			//TODO://wie sieht das nochmal ausgeschrieben aus?
 			vec_iterator(vec_iterator const & src)	: it_ptr(src.it_ptr) {}
 			vec_iterator& 				operator=(vec_iterator const & rhs) {if (this != &rhs) this->it_ptr = rhs.it_ptr;return *this;}

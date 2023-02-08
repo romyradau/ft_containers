@@ -5,13 +5,14 @@
 namespace ft{
 	template<class IT>
 	class reverse_iterator{
-		typedef IT													iterator_type;
-		typedef typename iterator_traits<IT>::iterator_category		iterator_category;
-		typedef typename iterator_traits<IT>::value_type			value_type;
-		typedef typename iterator_traits<IT>::difference_type		difference_type;
-		typedef typename iterator_traits<IT>::pointer				pointer;
-		typedef typename iterator_traits<IT>::reference				reference;
-		typedef reverse_iterator< const value_type >				const_reverse_iterator;
+		public:
+			typedef IT													iterator_type;
+			typedef typename iterator_traits<IT>::iterator_category		iterator_category;
+			typedef typename iterator_traits<IT>::value_type			value_type;
+			typedef typename iterator_traits<IT>::difference_type		difference_type;
+			typedef typename iterator_traits<IT>::pointer				pointer;
+			typedef typename iterator_traits<IT>::reference				reference;
+			typedef reverse_iterator< const value_type >				const_reverse_iterator;
 //does that make it unnecessary to inherit from vec_iterator?
 
 		public:
