@@ -15,37 +15,45 @@ namespace ft{
 			typedef reverse_iterator< const value_type >				const_reverse_iterator;
 //does that make it unnecessary to inherit from vec_iterator?
 
+		protected:
+			iterator_type	m_it;
 		public:
 			reverse_iterator(void): m_it() {}
 			explicit reverse_iterator (iterator_type it): m_it(it){}
+
 			//TODO://wie sieht das nochmal ausgeschrieben aus?
 			template <class value_type>  reverse_iterator (const reverse_iterator<value_type>& rev_it): m_it(rev_it.base()){}
 			//constructoren wollen die priv_memeber direkt und nicht per getter function!
 			~reverse_iterator(void) {}
 			//good practice
-    		pointer 					base() const {return this->m_it;}
-			reference 					operator*() const {IT tmp = this->base(); return *(--tmp);}
+    		iterator_type				base() const {return this->m_it;}
+			reference 					operator*() const {iterator_type tmp = this->base(); return *(--tmp);}
 			pointer						operator->() const {return &(operator*());}
-    		reverse_iterator  			operator+(difference_type n) const {return reverse_iterator(this->base() - n);}
-  			reverse_iterator& 			operator++() {--this->base();return *this;}
-  			reverse_iterator 			operator++(int) {reverse_iterator tmp = *this; ++(*this); return tmp;}//post operator//returns a copy of the it, bc the object in place should not be modified
-			reverse_iterator& 			operator--() {++this->base();return *this;}
-  			reverse_iterator 			operator--(int) {reverse_iterator tmp = *this; --(*this); return tmp;}
-			reverse_iterator& 			operator+=(difference_type n) {this->base() -= n; return *this;}
-			reverse_iterator& 			operator-=(difference_type n) {this->base() += n; return *this;}
-    		reverse_iterator 			operator-(difference_type n) const {return reverse_iterator(this->base() + n);}
+    		reverse_iterator  			operator+(difference_type n) const {return reverse_iterator(this->m_it - n);}
+  			reverse_iterator& 			operator++() {--this->m_it;return *this;}
+  			reverse_iterator 			operator++(int) {reverse_iterator tmp = *this; --(this->m_it); return tmp;}//post operator//returns a copy of the it, bc the object in place should not be modified
+			reverse_iterator& 			operator--() {++this->m_it;return *this;}
+  			reverse_iterator 			operator--(int) {reverse_iterator tmp = *this; ++(this->m_it); return tmp;}
+			reverse_iterator& 			operator+=(difference_type n) {this->m_it -= n; return *this;}
+			reverse_iterator& 			operator-=(difference_type n) {this->m_it += n; return *this;}
+    		reverse_iterator 			operator-(difference_type n) const {return reverse_iterator(this->m_it + n);}
 			reference 					operator[](difference_type n) {return *(*this + n);}//complicated... mal's mal auf!
-			friend bool					operator==(const reverse_iterator l, const reverse_iterator r) {return l.base() == r.base();}
-			friend bool					operator!=(const reverse_iterator l, const reverse_iterator r) {return l.base() != r.base();}
-			friend bool					operator>(const reverse_iterator l, const reverse_iterator r) {return l.base() < r.base();}
-			friend bool					operator>=(const reverse_iterator l, const reverse_iterator r) {return l.base() <= r.base();}
-			friend bool					operator<(const reverse_iterator l, const reverse_iterator r) {return l.base() > r.base();}
-			friend bool					operator<=(const reverse_iterator l, const reverse_iterator r) {return l.base() >= r.base();}
+			template <class Iterator1, class Iterator2>
+			friend bool					operator==(const reverse_iterator<Iterator1> l, const reverse_iterator<Iterator2> r) {return l.base() == r.base();}
+			template <class Iterator1, class Iterator2>
+			friend bool					operator!=(const reverse_iterator<Iterator1> l, const reverse_iterator<Iterator2> r) {return l.base() != r.base();}
+			template <class Iterator1, class Iterator2>
+			friend bool					operator>(const reverse_iterator<Iterator1> l, const reverse_iterator<Iterator2> r) {return l.base() < r.base();}
+			template <class Iterator1, class Iterator2>
+			friend bool					operator>=(const reverse_iterator<Iterator1> l, const reverse_iterator<Iterator2> r) {return l.base() <= r.base();}
+			template <class Iterator1, class Iterator2>
+			friend bool					operator<(const reverse_iterator<Iterator1> l, const reverse_iterator<Iterator2> r) {return l.base() > r.base();}
+			template <class Iterator1, class Iterator2>
+			friend bool					operator<=(const reverse_iterator<Iterator1> l, const reverse_iterator<Iterator2> r) {return l.base() >= r.base();}
 			//correct?
-			friend difference_type		operator-(const reverse_iterator l, const reverse_iterator r) {return r.base() - l.base();}
+			template <class Iterator>
+			difference_type		operator-(const reverse_iterator<Iterator> other) {return other.m_it - this->m_it; }
 
-		private:
-			iterator_type	m_it;
 
 	};
 	template< class IT >

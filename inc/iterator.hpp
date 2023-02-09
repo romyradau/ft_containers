@@ -34,6 +34,10 @@ namespace ft{
 			vec_iterator(pointer const ptr)				: it_ptr(ptr) {}
 			//TODO://wie sieht das nochmal ausgeschrieben aus?
 			vec_iterator(vec_iterator const & src)	: it_ptr(src.it_ptr) {}
+
+			template<class Iter>
+			vec_iterator(const vec_iterator<Iter>& i) : it_ptr(i.base()) {};
+
 			vec_iterator& 				operator=(vec_iterator const & rhs) {if (this != &rhs) this->it_ptr = rhs.it_ptr;return *this;}
 			~vec_iterator(void) {}
     		pointer 					base() const { return this->it_ptr;}
@@ -52,13 +56,20 @@ namespace ft{
 			vec_iterator& 				operator-=(difference_type n) {this->it_ptr -= n; return *this;}
     		vec_iterator  				operator+(difference_type n) const {return vec_iterator(this->it_ptr + n);}
     		vec_iterator 				operator-(difference_type n) const {return vec_iterator(this->it_ptr - n);}
-			friend bool					operator==(const vec_iterator l, const vec_iterator r) {return l.base() == r.base();}
-			friend bool					operator!=(const vec_iterator l, const vec_iterator r) {return (l.base() != r.base());}
-			friend bool					operator>(const vec_iterator l, const vec_iterator r) {return l.base() > r.base();}
-			friend bool					operator>=(const vec_iterator l, const vec_iterator r) {return l.base() >= r.base();}
-			friend bool					operator<(const vec_iterator l, const vec_iterator r) {return l.base() < r.base();}
-			friend bool					operator<=(const vec_iterator l, const vec_iterator r) {return l.base() <= r.base();}
-			friend difference_type		operator-(const vec_iterator l, const vec_iterator r) {return l.base() - r.base();}
+			template< class Iter1, class Iter2 >
+			friend bool					operator==(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return l.base() == r.base();}
+			template< class Iter1, class Iter2 >
+			friend bool					operator!=(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return (l.base() != r.base());}
+			template< class Iter1, class Iter2 >
+			friend bool					operator>(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return l.base() > r.base();}
+			template< class Iter1, class Iter2 >
+			friend bool					operator>=(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return l.base() >= r.base();}
+			template< class Iter1, class Iter2 >
+			friend bool					operator<(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return l.base() < r.base();}
+			template< class Iter1, class Iter2 >
+			friend bool					operator<=(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return l.base() <= r.base();}
+			template< class Iter1, class Iter2 >
+			friend difference_type		operator-(const vec_iterator<Iter1> l, const vec_iterator<Iter2> r) {return l.base() - r.base();}
 			//friend for the non member overloads, if them both parameters don't get changed by the function
 
 		private:

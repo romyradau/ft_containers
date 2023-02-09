@@ -14,6 +14,7 @@
 #include "reverse_iterator.hpp"
 #include "type_traits.hpp"
 #include "iterator_traits.hpp"
+#include "algorithm.hpp"
 
 
 namespace ft{
@@ -293,32 +294,40 @@ namespace ft{
 		this->insert(pos, 1, val);
 		return (iterator(this->_pointer + res));
 	}
+
 	// insert fill
 	template<typename T, class Alloc>
 	void vector<T, Alloc>::insert(iterator pos, size_type n, const_reference val) {
-		size_type curr = pos - begin();
-		std::cout << curr << std::endl;
-		if (this->_size + n > this->_cap)
-			_realloc(this->_size + n);
-		this->_insert_construct_end(curr, n);
-		for (size_type i = 0; i < n; ++i, ++curr)
-			this->_alloc.construct(this->_pointer + curr, val);
-		this->_size += n;
+		size_type index = pos - this->begin();
+		if (n)
+		{
+			if (this->size() + n > this->capacity())
+			{
+				reserve((this->size() + n) * 1.5);
+			}
+			for (size_type i = this->_size; i > index; i--)
+			{
+				this->_alloc.construct(this->_pointer + i + n - 1, *(this->_pointer + i -1));
+				this->_alloc.destroy(this->_pointer + i - 1);
+			}
+			for (size_type i = 0; i < n; i++)
+			{
+				this->_alloc.construct(this->_pointer + index + i, val);
+				this->_size++;
+			}
+		}
 	}
+
 	// insert range
 	template<typename T, class Alloc>
 	template <class InputIterator>
 	void vector<T, Alloc>::insert(iterator pos, InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type*)
 	{
-		size_type curr = pos - begin();
-		size_type n = last - first;
-		if (this->_size + n >= this->_cap)
-			_realloc(this->_cap + n);
-		this->_insert_construct_end(curr, n);
-		for (; first != last; ++curr, ++first)
-			this->_alloc.construct(this->_pointer + curr, *first);
-		this->_size += n;
+		for (; first != last; ++first, ++pos)
+			pos = insert(pos, *first);
 	}
+
+
 	template<typename T, class Alloc>
 	typename vector<T, Alloc>::iterator vector<T, Alloc>::erase (iterator position){
 		iterator res = position;
@@ -382,48 +391,33 @@ namespace ft{
 
 	}
 
-	// template<typename T, class Alloc>
-	// vector<T, Alloc>::iterator vector<T, Alloc>::insert (iterator position, const value_type& val){
 
-	// }
-	
-
-	// template<typename T, class Alloc>
-	// void 	vector<T, Alloc>::insert (iterator position, size_type n, const value_type& val){
-
-	// }
-
-	// template<typename T, class Alloc>
-	// template<class InputIterator>
-	// void vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last){
-
-	// }
 /* true if all the elements in the range [first1,last1) compare equal to those of the range starting at first2, and false otherwise.*/
-	template <class InputIterator1, class InputIterator2>
-  	bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 ){
-	  while (first1!=last1) {
-	    if (!(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
-	      return false;
-	    ++first1; ++first2;
-	  }
-	  return true;
-	}
+	// template <class InputIterator1, class InputIterator2>
+  	// bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 ){
+	//   while (first1!=last1) {
+	//     if (!(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
+	//       return false;
+	//     ++first1; ++first2;
+	//   }
+	//   return true;
+	// }
 
-	template <class InputIterator1, class InputIterator2, class BinaryPredicate>
-	bool equal (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred){
-			  while (first1!=last1) {
-	    if (!pred(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
-	      return false;
-	    ++first1; ++first2;
-	  }
-	  return true;
-	}
+	// template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+	// bool equal (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred){
+	// 		  while (first1!=last1) {
+	//     if (!pred(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
+	//       return false;
+	//     ++first1; ++first2;
+	//   }
+	//   return true;
+	// }
 
 	template <class T, class Alloc>  
 	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 //check sizes, then compare
 		if (lhs.size() == rhs.size())
-			return (equal(lhs.begin(), lhs.end(), rhs.begin()));
+			return (ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
 		return false;
 	}
 
@@ -436,7 +430,7 @@ namespace ft{
 
 	template <class T, class Alloc>
 	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
-		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+		return (ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 	}
 
 
@@ -460,29 +454,29 @@ namespace ft{
 
 	}
 
-	/*Lexicographical order is nothing but the dictionary order or preferably the order in which words appear in the dictonary. For example, let's take three strings, "short", "shorthand" and "small". In the dictionary, "short" comes before "shorthand" and "shorthand" comes before "small". This is lexicographical order.*/
-	template <class InputIterator1, class InputIterator2>
-	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2){
-  		while (first1!=last1)
-  		{
-  		  if (first2==last2 || *first2<*first1) return false;
-  		  else if (*first1<*first2) return true;
-  		  ++first1; ++first2;
-  		}
-  		return (first2!=last2);
-	}
+	// /*Lexicographical order is nothing but the dictionary order or preferably the order in which words appear in the dictonary. For example, let's take three strings, "short", "shorthand" and "small". In the dictionary, "short" comes before "shorthand" and "shorthand" comes before "small". This is lexicographical order.*/
+	// template <class InputIterator1, class InputIterator2>
+	// bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2){
+  	// 	while (first1!=last1)
+  	// 	{
+  	// 	  if (first2==last2 || *first2<*first1) return false;
+  	// 	  else if (*first1<*first2) return true;
+  	// 	  ++first1; ++first2;
+  	// 	}
+  	// 	return (first2!=last2);
+	// }
 
 
-	template <class InputIterator1, class InputIterator2, class Compare>
-	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp){
-  		while (first1!=last1)
-  		{
-  		  if (comp(first2==last2 || *first2<*first1)) return false;
-  		  else if (comp(*first1<*first2)) return true;
-  		  ++first1; ++first2;
-  		}
-  		return (first2!=last2);
-	}
+	// template <class InputIterator1, class InputIterator2, class Compare>
+	// bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp){
+  	// 	while (first1!=last1)
+  	// 	{
+  	// 	  if (comp(first2==last2 || *first2<*first1)) return false;
+  	// 	  else if (comp(*first1<*first2)) return true;
+  	// 	  ++first1; ++first2;
+  	// 	}
+  	// 	return (first2!=last2);
+	// }
 /*After the call to this member function, the elements in x are those which were in y before the call, and the elements of y are those which were in x.*/
 	template <class T, class Alloc>
 	void swap (vector<T,Alloc>& x, vector<T,Alloc>& y){
