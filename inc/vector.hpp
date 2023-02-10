@@ -5,7 +5,7 @@
 //for std::allocator
 #include <limits>
 #include <cstddef>
-//ptrdiff_t
+//for ptrdiff_t
 #include <algorithm>
 #include <cstdlib>
 #include <stdexcept>
