@@ -41,9 +41,9 @@ namespace ft{
 			reference			operator*() {return *it_ptr;}
 			const_reference		operator*()const {return *it_ptr;}
 
-			map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(ft::avl_tree<value_type>::successor()));}
+			map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(ft::avl_tree<value_type>::successor(it_ptr)));}
 			map_iterator		operator++(int){map_iterator tmp = *this; ++*this; return tmp;}
-			map_iterator&		operator--(){if(!it_ptr) return *this; return(map_iterator(ft::avl_tree<value_type>::predecessor()));}
+			map_iterator&		operator--(){if(!it_ptr) return *this; return(map_iterator(ft::avl_tree<value_type>::predecessor(it_ptr)));}
 			map_iterator		operator--(int){map_iterator tmp = *this; --*this; return tmp;}
 
 			};

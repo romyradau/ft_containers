@@ -172,7 +172,7 @@ namespace ft {
 				updateBalance(curr->parent);
 		}
 
-		void insert(value_type key) {
+		node_pointer insert(value_type key) {
 			// PART 1: Ordinary BST insert
 			node_pointer curr = new node(key);
 
@@ -198,6 +198,7 @@ namespace ft {
 
 			// PART 2: re-balance the node if necessary
 			this->updateBalance(curr);
+			return (curr);
 		}
 
 		// find the node with the minimum key

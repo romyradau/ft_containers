@@ -27,7 +27,7 @@ template<
 
 		public:
 			typedef Key										key_type;
-			typedef T										mapped_value;
+			typedef T										mapped_type;
 			typedef	std::pair<const Key, T> 				value_type;
 			typedef	std::size_t								size_type;
 			typedef	std::ptrdiff_t							difference_type;
@@ -41,6 +41,11 @@ template<
 			typedef	ft::map_iterator<const value_type>		const_iterator;
 			typedef	ft::reverse_iterator<iterator>			reverse_iterator;
 			typedef	ft::reverse_iterator<const iterator>	const_reverse_iterator;
+
+			typedef ft::avl_tree<value_type>		avl_tree;
+			typedef	typename avl_tree::node			node;
+			typedef	typename avl_tree::node_pointer	node_pointer;
+
 
 		private:
 			ft::avl_tree<value_type>											_avl;
@@ -76,7 +81,17 @@ template<
 
 			}
 
+			// mapped_type& operator[] (const key_type& k) {
+			// 	if (this->_avl.search(ft::make_pair(k, mapped_type())))
+			// }
 
+			// ft::pair<iterator, bool> insert (const_reference val) {
+			ft::pair<iterator, bool> insert (const_reference val) {
+				if (!this->_avl.search(val)) {
+					node_pointer curr = this->_avl.insert(val);
+					return (ft::make_pair(iterator(node_pointer), true));
+				}
+			}
 
 	};
 
