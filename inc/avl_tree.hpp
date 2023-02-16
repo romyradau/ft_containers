@@ -14,190 +14,125 @@ namespace ft {
 		typedef size_t				size_type;
 
 		value_type					data;
-		ptr 					parent;
-		ptr 					left;
-		ptr 					right;
-		int 					bf;
+		ptr 						parent;
+		ptr 						left;
+		ptr 						right;
 
-		node(const value_type& data = value_type()): data(data), parent(NULL), left(NULL), right(NULL), bf(0) {}
+		node(value_type const & data = value_type()): data(data), parent(NULL), left(NULL), right(NULL) {}
+		node(node<T> const & src): data(src.data), parent(src.parent), left(src.left), right(src.right) {}
+		node & operator= (node const &rhs){
+			if (this != &rhs){
+				this->data = rhs.data;
+				this->parent = rhs.parent;
+				this->left = rhs.left;
+				this->right = rhs.right;
+			}
+			return *this;
+		}
+		~node(){}
+
+		// int&	getBalance(void){return this->bf;}
 
 		};
 
-	template <typename T>
+	template < typename T >
 	class avl_tree {
-		public:
-			typedef T						value_type;
-			typedef ft::node<value_type>	node;
-			typedef typename node::ptr		ptr;
+	public:
+		/*
+		** ----------------------- MEMBER TYPES -----------------------
+		*/
+		typedef T							value_type;
+		typedef ft::node<value_type>		node;
+		typedef typename node::ptr	node_pointer;
 
-		private:
-			ptr _root;
-
-		public:
-			avl_tree(): _root(NULL) {}
-
-			ptr get_root() const { return (this->_root); }
-
-			void leftRotate(ptr x) {
-				ptr y = x->right;
-				x->right = y->left;
-				if (y->left != NULL) {
-					y->left->parent = x;
-				}
-				y->parent = x->parent;
-				if (x->parent == NULL) {
-					this->_root = y;
-				} else if (x == x->parent->left) {
-					x->parent->left = y;
-				} else {
-					x->parent->right = y;
-				}
-				y->left = x;
-				x->parent = y;
-
-				// update the balance factor
-				x->bf = x->bf - 1 - std::max(0, y->bf);
-				y->bf = y->bf - 1 + std::min(0, x->bf);
-			} 
-
-			void rightRotate(ptr x) {
-				ptr y = x->left;
-				x->left = y->right;
-				if (y->right != NULL) {
-					y->right->parent = x;
-				}
-				y->parent = x->parent;
-				if (x->parent == NULL) {
-					this->_root = y;
-				} else if (x == x->parent->right) {
-					x->parent->right = y;
-				} else {
-					x->parent->left = y;
-				}
-				y->right = x;
-				x->parent = y;
-
-				// update the balance factor
-				x->bf = x->bf + 1 - std::min(0, y->bf);
-				y->bf = y->bf + 1 + std::max(0, x->bf);
-			}
-
-			ptr rebalance(ptr curr) {
-				if (curr->bf > 0) {
-					if (curr->right->bf < 0) {
-						std::cout << "right left rotate" << std::endl;
-						rightRotate(curr->right);
-						leftRotate(curr);
-					} else {
-						std::cout << "left rotate" << std::endl;
-						leftRotate(curr);
-					}
-					return (curr->parent);
-				} 
-				else if (curr->bf < 0) {
-					if (curr->left->bf > 0) {
-						std::cout << "left right rotate" << std::endl;
-						leftRotate(curr->left);
-						rightRotate(curr);
-					} else {
-						std::cout << "right rotate" << std::endl;
-						rightRotate(curr);
-					}
-					return (curr->parent);
-				}
-				return (curr);
-			}
-
-			void updateBalance(ptr curr) {
-
-				if (curr->bf < -1 || curr->bf > 1) {
-					this->rebalance(curr);
-					std::cout << "Rebalancing needed." << std::endl;
-					return ;
-				}
-				if (curr->parent != NULL) {
-					if (curr == curr->parent->left)
-						curr->parent->bf -= 1;
-					if (curr == curr->parent->right)
-						curr->parent->bf += 1;
-					if (curr->parent->bf != 0)
-						this->updateBalance(curr->parent);
-				}
-			}
-
-			void insert(value_type key) {
-				// PART 1: Ordinary BST insert
-				ptr curr = new node(key);
-
-				ptr y = NULL;
-				ptr x = this->_root;
-
-				while (x != NULL) {
-					y = x;
-					if (curr->data < x->data)
-						x = x->left;
-					else
-						x = x->right;
-				}
-
-				// y is parent of x
-				curr->parent = y;
-				if (y == NULL)
-					this->_root = curr;
-				else if (curr->data < y->data)
-					y->left = curr;
-				else
-					y->right = curr;
-
-				// PART 2: re-balance the node if necessary
-				this->updateBalance(curr);
-			}
-
-
-			ptr maximum(ptr node) {
-			while (node->right != nullptr) {
-				node = node->right;
-			}
-			return node;
-			}
+	private:
+		node_pointer _root;
 	
-			// find the node with the minimum key
-			ptr minimum(ptr curr) {
-				while (curr->left != NULL) {
-					curr = curr->left;
-				}
-				return (curr);
+	public:
+		avl_tree(): _root(NULL) {}
+		avl_tree(avl_tree<T> const &src): _root(src._root){}//hier alles allocaten
+		avl_tree & operator=(avl_tree const &rhs){}//hier alles allocaten
+		~avl_tree(){}
+
+		node_pointer getRoot() const { return (this->_root); }
+
+		int getBalanceFactor(node_pointer curr) const {
+			int rightHeight = curr ? getHeight(curr->right) : 0;
+			int leftHeight = curr ? getHeight(curr->left) : 0;
+			return (rightHeight - leftHeight);
+		}
+
+		int getHeight(node_pointer curr) const {
+			if (curr == NULL)
+				return (0);
+			return ( 1 + std::max( getHeight(curr->right), getHeight(curr->left) ) );
+		}
+
+		void leftRotate(node_pointer x) {
+			node_pointer y = x->right;
+			x->right = y->left;
+			if (y->left != NULL) {
+				y->left->parent = x;
 			}
+			y->parent = x->parent;
+			if (x->parent == NULL) {
+				this->_root = y;
+			} else if (x == x->parent->left) {
+				x->parent->left = y;
+			} else {
+				x->parent->right = y;
+			}
+			y->left = x;
+			x->parent = y;
+		} 
+
+		void rightRotate(node_pointer x) {
+			node_pointer y = x->left;
+			x->left = y->right;
+			if (y->right != NULL) {
+				y->right->parent = x;
+			}
+			y->parent = x->parent;
+			if (x->parent == NULL) {
+				this->_root = y;
+			} else if (x == x->parent->right) {
+				x->parent->right = y;
+			} else {
+				x->parent->left = y;
+			}
+			y->right = x;
+			x->parent = y;
+		}
 
 
-	ptr successor(ptr x) {
+	static node_pointer successor(node_pointer curr) {
 		// if the right subtree is not null,
 		// the successor is the leftmost node in the
 		// right subtree
-		if (x->right != NULL) {
-			return minimum(x->right);
+		if (curr->right != NULL) {
+			return min_node(curr->right);
 		}
 
-		// else it is the lowest ancestor of x whose
-		// left child is also an ancestor of x.
-		ptr y = x->parent;
-		while (y != NULL && x == y->right) {
-			x = y;
-			y = y->parent;
+		// else it is the lowest ancestor of curr whose
+		// left child is also an ancestor of curr.
+		node_pointer par = curr->parent;
+		while (par != NULL && curr == par->right) {
+			curr = par;
+			par = par->parent;
 		}
-		return y;
+		return par;
 	}
 
 	// find the predecessor of a given node
-	ptr predecessor(ptr x) {
+	static node_pointer predecessor(node_pointer x) {
 		// if the left subtree is not null,
 		// the predecessor is the rightmost node in the 
 		// left subtree
 		if (x->left != NULL) {
-			return maximum(x->left);
+			return max_node(x->left);
 		}
 
-		ptr y = x->parent;
+		node_pointer y = x->parent;
 		while (y != NULL && x == y->left) {
 			x = y;
 			y = y->parent;
@@ -205,120 +140,193 @@ namespace ft {
 
 		return y;
 	}
-			ptr deletenodeHelper(ptr curr, value_type key) {
-				ptr p;
-				// search the key
-				if (curr == NULL) return (curr);
-				else if (key < curr->data) {
-					curr->left = deletenodeHelper(curr->left, key);
-					curr->bf += 1;
-					return rebalance(curr);
-					//return rebalance von dem neuen root des subtrees
-
+		void rebalance(node_pointer curr) {
+			if (getBalanceFactor(curr) > 0) {
+				if (getBalanceFactor(curr->right) < 0) {
+					std::cout << "right left rotate" << std::endl;
+					rightRotate(curr->right);
+					leftRotate(curr);
+				} else {
+					std::cout << "left rotate" << std::endl;
+					leftRotate(curr);
 				}
-				else if (key > curr->data) {
-					curr->right = deletenodeHelper(curr->right, key);
-					curr->bf -= 1;
-					return rebalance(curr);
-				}
-				else {
-					// the key has been found, now delete it
-					p = curr->parent;
-					// case 1: curr is a leaf node
-					if (curr->left == NULL && curr->right == NULL) {
-						delete curr;
-						curr = NULL;
-					}
-
-					// case 2: curr has only one child
-					else if (curr->left == NULL) {
-						ptr temp = curr;
-						curr = curr->right;
-						delete temp;
-					}
-
-					else if (curr->right == NULL) {
-						ptr temp = curr;
-						curr = curr->left;
-						delete temp;
-					}
-
-					// case 3: has both children
-					else {
-						ptr temp = minimum(curr->right);
-						curr->data = temp->data;
-						curr->right = deletenodeHelper(curr->right, temp->data);
-					}
-
-				// 	if (p)
-				// 	{
-				// 		// while(predecessor(p))
-				// 		// p = minimum(this->_root);
-				// 		updateBalance(p);
-				// } 
-
-				// Write the update balance logic here 
-				// YOUR CODE HERE
-
-				}
-				return (curr);
-			}
-
-			ptr deletenode (value_type key) {
-				ptr deletednode = deletenodeHelper(this->_root, key);
-				// ptr deletednode = deletenodeHelper2(this->_root, key);
-				return (deletednode);
-			}
-
-			void printHelper(ptr curr, std::string indent, bool last) const {
-				// print the tree structure on the screen
-				if (curr != NULL) {
-					std::cout << indent;
-					if (last) {
-						std::cout << "R----";
-						indent += "     ";
-					}
-					else {
-						std::cout << "L----";
-						indent += "|    ";
-					}
-					std::cout << curr->data << "( bf = " << curr->bf <<")" << std::endl;
-
-					this->printHelper(curr->left, indent, false);
-					this->printHelper(curr->right, indent, true);
+			} 
+			else if (getBalanceFactor(curr) < 0) {
+				if (getBalanceFactor(curr->left) > 0) {
+					std::cout << "left right rotate" << std::endl;
+					leftRotate(curr->left);
+					rightRotate(curr);
+				} else {
+					std::cout << "right rotate" << std::endl;
+					rightRotate(curr);
 				}
 			}
+		}
 
-			void prettyPrint() const {
-				this->printHelper(this->_root, "", true);
+		void updateBalance(node_pointer curr) {
+			if (getBalanceFactor(curr) < -1 || getBalanceFactor(curr) > 1) {
+				std::cout << "Rebalancing needed." << std::endl;
+				this->rebalance(curr);
+			}
+			if (curr->parent != NULL)
+				updateBalance(curr->parent);
+		}
+
+		void insert(value_type key) {
+			// PART 1: Ordinary BST insert
+			node_pointer curr = new node(key);
+
+			node_pointer y = NULL;
+			node_pointer x = this->_root;
+
+			while (x != NULL) {
+				y = x;
+				if (curr->data < x->data)
+					x = x->left;
+				else
+					x = x->right;
 			}
 
-			void print2DUtil(ptr root, int space) const {
-				// Base case
-				if (root == NULL)
-					return ;
+			// y is parent of x
+			curr->parent = y;
+			if (y == NULL)
+				this->_root = curr;
+			else if (curr->data < y->data)
+				y->left = curr;
+			else
+				y->right = curr;
 
-				// Increase distance between levels
-				space += COUNT;
+			// PART 2: re-balance the node if necessary
+			this->updateBalance(curr);
+		}
 
-				// Process right child first
-				print2DUtil(root->right, space);
+		// find the node with the minimum key
+		static node_pointer min_node(node_pointer curr) {
+			while (curr->left != NULL) {
+				curr = curr->left;
+			}
+			return (curr);
+		}
 
-				// Print current node after space
-				// count
-				std::cout << std::endl;
-				for (int i = COUNT; i < space; i++)
-					std::cout << " ";
-				std::cout << root->data << "(bf: " << root->bf << ")" << std::endl;
+		// find the node with the maximum key
+		static node_pointer max_node(node_pointer curr) {
+			while (curr->right != NULL) {
+				curr = curr->right;
+			}
+			return (curr);
+		}
 
-				// Process left child
-				print2DUtil(root->left, space);
+		node_pointer searchHelper(node_pointer curr, value_type& key) const {
+			while (curr && curr->data != key) {
+				if (key < curr->data)
+					curr = curr->left;
+				else
+					curr = curr->right;
+			}
+			return (curr);
+		}
+
+		node_pointer search(value_type key) const {
+			return (searchHelper(this->_root, key));
+		}
+
+		void removeChild(node_pointer& parent, node_pointer& child) {
+			if (parent->left == child)
+				parent->left = NULL;
+			else if (parent->right == child)
+				parent->right = NULL;
+		}
+
+		node_pointer deletenodeHelper(node_pointer curr, value_type key) {
+			curr = searchHelper(curr, key);
+			if (!curr) return (NULL);
+
+			node_pointer prev = curr->parent;
+
+			// case 1: leaf node
+			if (!curr->left && !curr->right) {
+				if (prev) {
+					removeChild(prev, curr);
+				}
+				else 
+					this->_root = NULL;
+			}
+			
+			// case 2: node has one child
+			else if (!curr->right) {
+				node_pointer tmp = curr->left;
+				curr->data = tmp->data;
+				curr->left = NULL;
+				curr = tmp;
+			}
+			else if (!curr->left) {
+				node_pointer tmp = curr->right;
+				curr->data = tmp->data;
+				curr->right = NULL;
+				curr = tmp;
 			}
 
-			// Wrapper over print2DUtil()
-			void print2D() const {
-				// Pass initial space count as 0
-				print2DUtil(this->_root, 0);
+			// case 3: node has two children
+			else {
+				node_pointer tmp = min_node(curr->right);
+				curr->data = tmp->data;
+				curr = deletenodeHelper(curr->right, curr->data);
 			}
-	};
-} 
+
+			return (curr);
+		}
+
+		void deletenode (value_type key) {
+			node_pointer deletedNode = deletenodeHelper(this->_root, key);
+			if (deletedNode) {
+				if (deletedNode->parent)
+					updateBalance(deletedNode->parent);
+				else if (this->_root)
+					updateBalance(this->_root);
+				delete deletedNode;
+			}
+			else
+				std::cout << "Key not found." << std::endl;
+		}
+
+	// private:
+	// 	std::string getColorStr(int color) const {
+	// 		switch(color) {
+	// 			case 0: return (LIGHTGREEN);
+	// 			case 1: return (LIGHTBLUE);
+	// 			case 2: return (LIGHTYELLOW);
+	// 			case 3: return (LIGHTMAGENTA);
+	// 			case 4: return (LIGHTCYAN);
+	// 			default: return ("");
+	// 		}
+	// 	}
+
+		void print2D(node_pointer curr, int space, std::string dir) const {
+			// Base case
+			if (curr == NULL)
+				return ;
+
+			// Increase distance between levels
+			space += COUNT;
+
+			// Process right child first
+			print2D(curr->right, space, "v ");
+
+			// Print current node after space
+			// count
+			std::cout << std::endl;
+			for (int i = COUNT; i < space; i++)
+				std::cout << " ";
+			std::cout << dir << curr->data << " (BF: " << getBalanceFactor(curr) << ", H: " << getHeight(curr) << ") " << std::endl;
+
+			// Process left child
+			print2D(curr->left, space, "^ ");
+		}
+
+	public:
+		void printTree() const {
+			this->print2D(this->_root, 0, "");
+		}
+};
+
+}
