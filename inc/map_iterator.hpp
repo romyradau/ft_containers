@@ -5,6 +5,9 @@
 
 namespace ft{
 
+	template <typename T >
+	struct node;
+
 	template<typename T>
 	class map_iterator {
 
@@ -19,12 +22,13 @@ namespace ft{
 			typedef map_iterator< const value_type >	const_iterator;
 
 		private:
-			pointer 			it_ptr;
+			// pointer 			it_ptr;
+			ft::node<value_type>*	it_ptr;
 
 		public:
 			map_iterator(): it_ptr(NULL){}
 			map_iterator(map_iterator const &src): it_ptr(src.it_ptr){}
-			map_iterator(pointer ptr): it_ptr(ptr){};
+			map_iterator(ft::node<value_type>* ptr): it_ptr(ptr){};
 			map_iterator&	operator=(map_iterator const & rhs){if (this!= &rhs) it_ptr = rhs.it_ptr; return *this;}
 
 			// a == b 
@@ -41,9 +45,11 @@ namespace ft{
 			reference			operator*() {return *it_ptr;}
 			const_reference		operator*()const {return *it_ptr;}
 
-			map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(ft::avl_tree<value_type>::successor(it_ptr)));}
+			map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(it_ptr->successor(it_ptr)));}
+			// map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(T::successor(it_ptr)));}
+
 			map_iterator		operator++(int){map_iterator tmp = *this; ++*this; return tmp;}
-			map_iterator&		operator--(){if(!it_ptr) return *this; return(map_iterator(ft::avl_tree<value_type>::predecessor(it_ptr)));}
+			map_iterator&		operator--(){if(!it_ptr) return *this; return(map_iterator(it_ptr->predecessor(it_ptr)));}
 			map_iterator		operator--(int){map_iterator tmp = *this; --*this; return tmp;}
 
 			};

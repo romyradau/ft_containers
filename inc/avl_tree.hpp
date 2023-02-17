@@ -4,10 +4,22 @@
 
 #include <iostream>
 #include <algorithm>
+#include "pair.hpp"
+#include "map_iterator.hpp"
+#include "pair.hpp"
+#include "reverse_iterator.hpp"
+
+
 
 namespace ft {
 
-	template <typename T>
+
+	template <class Type>
+	struct rebind {
+	typedef std::allocator<Type> other;
+	};
+
+	template <typename T >
 	struct node {
 		typedef T					value_type;
 		typedef node<value_type>*	ptr;
@@ -31,26 +43,97 @@ namespace ft {
 		}
 		~node(){}
 
-		// int&	getBalance(void){return this->bf;}
 
-		};
+		// find the node with the minimum key
+		ptr min_node(ptr curr) {
+			while (curr->left != NULL) {
+				curr = curr->left;
+			}
+			return (curr);
+		}
 
-	template < typename T >
+		// find the node with the maximum key
+		ptr max_node(ptr curr) {
+			while (curr->right != NULL) {
+				curr = curr->right;
+			}
+			return (curr);
+		}
+
+		ptr successor(ptr curr) {
+		// if the right subtree is not null,
+		// the successor is the leftmost node in the
+		// right subtree
+		if (curr->right != NULL) {
+			return min_node(curr->right);
+		}
+
+		// else it is the lowest ancestor of curr whose
+		// left child is also an ancestor of curr.
+		ptr par = curr->parent;
+		while (par != NULL && curr == par->right) {
+			curr = par;
+			par = par->parent;
+		}
+		return par;
+		}
+	// find the predecessor of a given node
+		ptr predecessor(ptr x) {
+			// if the left subtree is not null,
+			// the predecessor is the rightmost node in the 
+			// left subtree
+			if (x->left != NULL) {
+				return max_node(x->left);
+			}
+
+			// int&	getBalance(void){return this->bf;}
+
+			};
+	};
+
+
+template<
+	class Key,
+    class T,
+    class Compare = std::less<Key>,
+    class Allocator = std::allocator<ft::pair<const Key, T> > >
+
 	class avl_tree {
 	public:
 		/*
 		** ----------------------- MEMBER TYPES -----------------------
 		*/
-		typedef T							value_type;
-		typedef ft::node<value_type>		node;
-		typedef typename node::ptr	node_pointer;
+		typedef Key														key_type;
+		typedef T														mapped_type;
+		typedef	ft::pair<const Key, T> 									value_type;
+		typedef	Compare													key_compare; //https://en.cppreference.com/w/cpp/utility/functional/less
+		typedef	Allocator												allocator_type;
+		typedef ft::node<value_type>									node;
+		typedef typename node::ptr										node_pointer;
+		typedef typename allocator_type::template rebind<node>::other	node_allocator_type;
+		typedef	std::size_t												size_type;
+		// typedef	ft::map_iterator<value_type>							iterator;
+		typedef	ft::map_iterator<value_type>							iterator;
+		typedef	ft::map_iterator<const value_type>						const_iterator;
+		typedef	ft::reverse_iterator<iterator>							reverse_iterator;
+		typedef	ft::reverse_iterator<const_iterator>					const_reverse_iterator;
+		// typedef	ft::avl_tree<key_type, mapped_type, value_type, allocator_type>	avl;
+
 
 	private:
-		node_pointer _root;
+		node_pointer 													_root;
+		key_compare														_compare;//nicht dafuer da um etwas reinzuspeichern										
+		size_type														_size;
+		allocator_type													_pair_alloc;
+		node_allocator_type												_node_alloc;
+			//beim allocator den template type asugewechselt
+			//other ist ein allocator auf diesen type
 	
 	public:
-		avl_tree(): _root(NULL) {}
-		avl_tree(avl_tree<T> const &src): _root(src._root){}//hier alles allocaten
+		avl_tree(): _root(NULL), _compare(), _size(0), _pair_alloc(), _node_alloc() {}
+		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()): _root(NULL), _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(){}
+		//TODO:ausarbeitung missing!
+		avl_tree(avl_tree const &other): _root(other._root), _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){}//hier alles allocaten
 		avl_tree & operator=(avl_tree const &rhs){}//hier alles allocaten
 		~avl_tree(){}
 
@@ -172,9 +255,16 @@ namespace ft {
 				updateBalance(curr->parent);
 		}
 
-		node_pointer insert(value_type key) {
+		ft::pair<iterator,bool> insert(value_type key) {
+
+			node_pointer curr = search(key);
+			if (curr){
+				iterator res(curr);
+				return (ft::make_pair<iterator, bool>(res, false));
+			}
+
 			// PART 1: Ordinary BST insert
-			node_pointer curr = new node(key);
+			curr = new node(key);
 
 			node_pointer y = NULL;
 			node_pointer x = this->_root;
@@ -198,7 +288,8 @@ namespace ft {
 
 			// PART 2: re-balance the node if necessary
 			this->updateBalance(curr);
-			return (curr);
+			iterator res(curr);
+			return (ft::make_pair<iterator, bool>(res, true));
 		}
 
 		// find the node with the minimum key
@@ -328,6 +419,5 @@ namespace ft {
 		void printTree() const {
 			this->print2D(this->_root, 0, "");
 		}
-};
-
+	};
 }
