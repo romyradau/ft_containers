@@ -14,10 +14,10 @@
 namespace ft {
 
 
-	template <class Type>
-	struct rebind {
-	typedef std::allocator<Type> other;
-	};
+	// template <class Type>
+	// struct rebind {
+	// typedef std::allocator<Type> other;
+	// };
 
 	template <typename T >
 	struct node {
@@ -131,7 +131,7 @@ template<
 	
 	public:
 		avl_tree(): _root(NULL), _compare(), _size(0), _pair_alloc(), _node_alloc() {}
-		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()): _root(NULL), _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(){}
+		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type(), const allocator_type& nalloc = node_allocator_type()): _root(NULL), _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(nalloc){}
 		//TODO:ausarbeitung missing!
 		avl_tree(avl_tree const &other): _root(other._root), _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){}//hier alles allocaten
 		avl_tree & operator=(avl_tree const &rhs){}//hier alles allocaten
@@ -258,20 +258,22 @@ template<
 		ft::pair<iterator,bool> insert(value_type key) {
 
 			node_pointer curr = search(key);
+
 			if (curr){
 				iterator res(curr);
 				return (ft::make_pair<iterator, bool>(res, false));
 			}
 
 			// PART 1: Ordinary BST insert
-			curr = new node(key);
+			curr = this->_node_alloc.allocate(1);
+			this->_node_alloc.construct(curr, node(key));
 
 			node_pointer y = NULL;
 			node_pointer x = this->_root;
 
 			while (x != NULL) {
 				y = x;
-				if (curr->data < x->data)
+				if (this->_compare(curr->data, x->data))//damit nur das erste verglichen wird
 					x = x->left;
 				else
 					x = x->right;
@@ -281,13 +283,14 @@ template<
 			curr->parent = y;
 			if (y == NULL)
 				this->_root = curr;
-			else if (curr->data < y->data)
+			else if (this->_compare(curr->data,y->data))
 				y->left = curr;
 			else
 				y->right = curr;
 
 			// PART 2: re-balance the node if necessary
 			this->updateBalance(curr);
+			this->_size++;
 			iterator res(curr);
 			return (ft::make_pair<iterator, bool>(res, true));
 		}
@@ -309,14 +312,29 @@ template<
 		}
 
 		node_pointer searchHelper(node_pointer curr, value_type& key) const {
-			while (curr && curr->data != key) {
-				if (key < curr->data)
+			while (curr) {
+				if (this->_compare(key, curr->data))
 					curr = curr->left;
-				else
+				else if (this->_compare(curr->data, key))
 					curr = curr->right;
+				else
+					break;
 			}
 			return (curr);
 		}
+		node_pointer searchKey(node_pointer curr, key_type const & key) const {
+			while (curr) {
+				if (this->_compare(key, curr->data))
+					curr = curr->left;
+				else if (this->_compare(curr->data, key))
+					curr = curr->right;
+				else
+					break;
+			}
+			return (curr);
+		}
+		//vielleicht ohne den overload
+
 
 		node_pointer search(value_type key) const {
 			return (searchHelper(this->_root, key));
@@ -375,7 +393,9 @@ template<
 					updateBalance(deletedNode->parent);
 				else if (this->_root)
 					updateBalance(this->_root);
-				delete deletedNode;
+				this->_node_alloc.destroy(deletedNode);
+				this->_node_alloc.deallocate(deletedNode, 1);
+				this->_size--;
 			}
 			else
 				std::cout << "Key not found." << std::endl;

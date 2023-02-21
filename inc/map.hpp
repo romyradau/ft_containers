@@ -4,6 +4,7 @@
 #include "pair.hpp"
 #include "map_iterator.hpp"
 #include "reverse_iterator.hpp"
+#include <stdexcept>
 
 namespace ft{
 
@@ -21,6 +22,7 @@ template<
 	
 	class map{
 
+		
 		public:
 			typedef Key										key_type;
 			typedef T										mapped_type;
@@ -38,21 +40,23 @@ template<
 			typedef	ft::reverse_iterator<iterator>			reverse_iterator;
 			typedef	ft::reverse_iterator<const_iterator>	const_reverse_iterator;
 
-			typedef ft::avl_tree<key_type, mapped_type, key_compare, allocator_type>		avl_tree;
-			typedef	typename avl_tree::node			node;
-			typedef	typename avl_tree::node_pointer	node_pointer;
 
 			class value_compare{
 			protected:
 			  Compare comp;
-			  value_compare (Compare c) : comp(c) {}  // constructed with map's comparison object
 			public:
+			  value_compare (Compare c) : comp(c) {}  // constructed with map's comparison object
 			  typedef bool result_type;
 			  typedef value_type first_argument_type;
 			  typedef value_type second_argument_type;
 			  bool operator() (const value_type& x, const value_type& y) const{return comp(x.first, y.first);}
-};
+			  bool operator()(const key_type& key, const value_type &y) const { return comp(key, y.first); }
+              bool operator()(const value_type &x, const key_type& key) const { return comp(x.first, key); }
+			};
 
+			typedef ft::avl_tree<key_type, mapped_type, value_compare, allocator_type>		avl_tree;
+			typedef	typename avl_tree::node			node;
+			typedef	typename avl_tree::node_pointer	node_pointer;
 
 		private:
 			avl_tree										_avl;
@@ -87,15 +91,22 @@ template<
 
 			// copy (3)
 			// deep copy von einer bestehenden map
-			map (const map& other): avl_tree(other._avl){
-
-			}
+			map (const map& other): avl_tree(other._avl){}
 
 			map& operator= (const map& x){
 				if (this != &x)
 					this->_avl = x->_avl;
 				return *this;
 			}
+
+			iterator			begin(){if (_avl.getRoot()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}
+			// const_iterator			begin()const {return const_iterator(this->_pointer);}
+			iterator			end(){return iterator(_avl.max_node( _avl.getRoot())->right);}
+			// const_iterator			end()const {return const_iterator(this->_pointer + _size);}
+			// reverse_iterator	rbegin(){return reverse_iterator(end());}
+			// const_reverse_iterator	rbegin()const {return const_reverse_iterator(end());}
+			// reverse_iterator	rend(){return reverse_iterator(begin());}
+			// const_reverse_iterator	rend()const{return const_reverse_iterator(begin());}
 
 			// single element (1)	
 			ft::pair<iterator,bool> insert (const value_type& val){
@@ -106,7 +117,11 @@ template<
 			}
 
 			// with hint (2)	
-			// iterator insert (iterator position, const value_type& val);
+			iterator insert (iterator position, const value_type& val){
+				(void)position;
+				ft::pair<iterator,bool> it = _avl.insert(val);
+				return it.first;
+			}
 
 			// // range (3)	
 			// template <class InputIterator>  void insert (InputIterator first, InputIterator last);
@@ -127,9 +142,32 @@ template<
 				return value_compare();
 			}
 
-			avl_tree getTree() const {
-				return (_avl);
+
+
+			mapped_type& operator[] (const key_type& k){
+				ft::pair<iterator, bool> mapped = insert(value_type(k, mapped_type()));
+				return (mapped.first->second);
 			}
+
+			mapped_type& at (const key_type& k){
+
+				node_pointer success = this->_avl.searchKey(_avl.getRoot(), k);
+				if (success)
+					return success->data.second;
+				else
+					throw std::out_of_range("no matching key");
+			}
+
+			const mapped_type& at (const key_type& k) const{
+
+				node_pointer success = this->_avl.searchKey(_avl.getRoot(), k);
+				if (success)
+					return success->data.second;
+				else
+					throw std::out_of_range("no matching key");
+			}
+
+			void printMap() const { this->_avl.printTree(); }
 
 	};
 

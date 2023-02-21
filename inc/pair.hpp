@@ -23,7 +23,10 @@ struct pair {
 			}
 			return (*this);
 		}
-
+		friend std::ostream& operator<<(std::ostream& stream, const pair& pr) {
+			stream << pr.first << ": " << pr.second;
+			return (stream);
+		}
 };
 
 template <class T1, class T2>

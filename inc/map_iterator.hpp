@@ -40,10 +40,10 @@ namespace ft{
 
 			// *a
 			// a->m
-			pointer				operator->() {return it_ptr;}
-			const_pointer		operator->()const {return it_ptr;}
-			reference			operator*() {return *it_ptr;}
-			const_reference		operator*()const {return *it_ptr;}
+			pointer				operator->() {return &(operator*());}
+			const_pointer		operator->()const {return &(operator*());}
+			reference			operator*() {return it_ptr->data;}
+			const_reference		operator*()const {return it_ptr->data;}
 
 			map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(it_ptr->successor(it_ptr)));}
 			// map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(T::successor(it_ptr)));}
