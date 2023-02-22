@@ -13,13 +13,14 @@ namespace ft{
 
 		public:
 			typedef T									value_type;
+			// typedef	const value_type					const_value_type;
 			typedef value_type*							pointer;
 			typedef const pointer 						const_pointer;
 			typedef value_type&							reference;
 			typedef const value_type&					const_reference;
 			typedef std::ptrdiff_t						difference_type;// It is a type able to represent the result of any valid pointer subtraction operation.
 			typedef std::bidirectional_iterator_tag		iterator_category;// Empty class to identify the category of an iterator as a random-access iterator
-			typedef map_iterator< const value_type >	const_iterator;
+			// typedef map_iterator< const value_type >	const_iterator;
 
 		private:
 			// pointer 			it_ptr;
@@ -29,6 +30,17 @@ namespace ft{
 			map_iterator(): it_ptr(NULL){}
 			map_iterator(map_iterator const &src): it_ptr(src.it_ptr){}
 			map_iterator(ft::node<value_type>* ptr): it_ptr(ptr){};
+			operator	map_iterator<const value_type>() const { return map_iterator<const value_type>(reinterpret_cast<node<const value_type>* >(it_ptr)); }
+
+
+
+			// template<class Iter>
+			// map_iterator(const map_iterator<Iter>& i) : it_ptr(i.it_ptr()) {};
+			// map_iterator(ft::node<const_value_type>* ptr): it_ptr(ptr){};
+
+			// map_iterator(const_pointer cptr): it_ptr(ptr){};
+
+
 			map_iterator&	operator=(map_iterator const & rhs){if (this!= &rhs) it_ptr = rhs.it_ptr; return *this;}
 
 			// a == b 

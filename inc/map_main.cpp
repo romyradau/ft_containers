@@ -11,12 +11,14 @@ int main(){
 	// my_map.insert(ft::pair<int, std::string>(42, "Hello"));
 
 	ft::map<int, std::string> m;
+	ft::map<int, std::string>::reverse_iterator rev_begin_it = m.rbegin();
+	ft::map<int, std::string>::reverse_iterator rev_end_it = m.rend();
+
 	ft::pair<const int, std::string> pair = ft::make_pair<const int, std::string>(42, "Romyy");
 	ft::pair<const int, std::string> pair2 = ft::make_pair<const int, std::string>(666, "DEATH");
 
 	ft::pair<ft::map<int, std::string>::iterator, bool> insert_res =  m.insert(pair);
 	ft::map<int, std::string>::iterator insert_it = m.insert(m.begin(), pair2);
-	m.printMap();
 	std::cout << (insert_res.second ? "INSERTED" : "ALREADY INSERTED") << std::endl;
 	insert_res =  m.insert(pair);
 	std::cout << (insert_res.second ? "INSERTED" : "ALREADY INSERTED") << std::endl;
@@ -31,7 +33,13 @@ int main(){
   	catch (const std::out_of_range& oor) {
   	  std::cerr << "Out of Range error: " << oor.what() << '\n';
   	}
+	ft::map<int, std::string>::iterator begin_it = m.begin();
+	ft::map<int, std::string>::iterator end_it = m.end();
+	ft::map<int, std::string> m2;
+	// m2.insert(begin_it, end_it);
+
 	m.printMap();
+	// m2.printMap();
 
 
 	// ft::avl_tree<int, std::string> tree = m.getTree();

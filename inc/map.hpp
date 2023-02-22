@@ -55,8 +55,8 @@ template<
 			};
 
 			typedef ft::avl_tree<key_type, mapped_type, value_compare, allocator_type>		avl_tree;
-			typedef	typename avl_tree::node			node;
 			typedef	typename avl_tree::node_pointer	node_pointer;
+			typedef	typename avl_tree::node			node;
 
 		private:
 			avl_tree										_avl;
@@ -100,18 +100,17 @@ template<
 			}
 
 			iterator			begin(){if (_avl.getRoot()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}
-			// const_iterator			begin()const {return const_iterator(this->_pointer);}
+			const_iterator			begin()const {if (_avl.getRoot()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}//durch den cast im map_iterator wird heir const zurueckgegeben
 			iterator			end(){return iterator(_avl.max_node( _avl.getRoot())->right);}
-			// const_iterator			end()const {return const_iterator(this->_pointer + _size);}
-			// reverse_iterator	rbegin(){return reverse_iterator(end());}
-			// const_reverse_iterator	rbegin()const {return const_reverse_iterator(end());}
-			// reverse_iterator	rend(){return reverse_iterator(begin());}
-			// const_reverse_iterator	rend()const{return const_reverse_iterator(begin());}
+			const_iterator			end()const {return iterator(_avl.max_node( _avl.getRoot())->right);}//durch den cast im map_iterator wird heir const zurueckgegeben
+			reverse_iterator	rbegin(){if (empty()) return rend(); return reverse_iterator(end());}
+			const_reverse_iterator	rbegin()const {if (empty()) return rend(); return const_reverse_iterator(end());}
+			reverse_iterator	rend(){return reverse_iterator(begin());}
+			const_reverse_iterator	rend()const{return const_reverse_iterator(begin());}
 
 			// single element (1)	
 			ft::pair<iterator,bool> insert (const value_type& val){
 
-  			// ret = mymap.insert ( std::pair<char,int>('z',500) );
 
 				return (_avl.insert(val));
 			}
@@ -123,20 +122,14 @@ template<
 				return it.first;
 			}
 
-			// // range (3)	
-			// template <class InputIterator>  void insert (InputIterator first, InputIterator last);
+			// range (3)	
+			template <class InputIterator>
+			void insert (InputIterator first, InputIterator last){
 
-			// mapped_type& operator[] (const key_type& k) {
-			// 	if (this->_avl.search(ft::make_pair(k, mapped_type())))
-			// }
+				for(;first != last; first++)
+					insert(*first);
 
-			// ft::pair<iterator, bool> insert (const_reference val) {
-			// ft::pair<iterator, bool> insert (const_reference val) {
-			// 	if (!this->_avl.search(val)) {
-			// 		node_pointer curr = this->_avl.insert(val);
-			// 		return (ft::make_pair(iterator(node_pointer), true));
-			// 	}
-			// }
+			}
 
 			value_compare	value_comp() const {
 				return value_compare();
@@ -165,6 +158,12 @@ template<
 					return success->data.second;
 				else
 					throw std::out_of_range("no matching key");
+			}
+
+			bool empty() const{
+				if (begin() == end())
+					return true;
+				return false;
 			}
 
 			void printMap() const { this->_avl.printTree(); }

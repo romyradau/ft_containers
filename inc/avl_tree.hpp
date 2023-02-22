@@ -23,6 +23,7 @@ namespace ft {
 	struct node {
 		typedef T					value_type;
 		typedef node<value_type>*	ptr;
+		typedef const ptr			const_ptr;
 		typedef size_t				size_type;
 
 		value_type					data;
@@ -110,6 +111,7 @@ template<
 		typedef	Allocator												allocator_type;
 		typedef ft::node<value_type>									node;
 		typedef typename node::ptr										node_pointer;
+		typedef typename node::const_ptr								const_node_pointer;
 		typedef typename allocator_type::template rebind<node>::other	node_allocator_type;
 		typedef	std::size_t												size_type;
 		// typedef	ft::map_iterator<value_type>							iterator;
