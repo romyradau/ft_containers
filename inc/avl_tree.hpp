@@ -122,7 +122,6 @@ template<
 		// typedef	ft::avl_tree<key_type, mapped_type, value_type, allocator_type>	avl;
 
 
-	private:
 		node_pointer 													_root;
 		key_compare														_compare;//nicht dafuer da um etwas reinzuspeichern										
 		size_type														_size;
@@ -130,14 +129,31 @@ template<
 		node_allocator_type												_node_alloc;
 			//beim allocator den template type asugewechselt
 			//other ist ein allocator auf diesen type
+	// private:
 	
 	public:
 		avl_tree(): _root(NULL), _compare(), _size(0), _pair_alloc(), _node_alloc() {}
 		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type(), const allocator_type& nalloc = node_allocator_type()): _root(NULL), _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(nalloc){}
-		//TODO:ausarbeitung missing!
-		avl_tree(avl_tree const &other): _root(other._root), _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){}//hier alles allocaten
-		avl_tree & operator=(avl_tree const &rhs){}//hier alles allocaten
-		~avl_tree(){}
+		avl_tree(avl_tree const &other): _root(other._root), _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){
+			for (const_iterator it = other.begin(); it != other.end(); ++it)
+				insert(*it);
+		}
+
+		avl_tree & operator=(avl_tree const &rhs){
+			if (this != &rhs) {
+				// clear();
+				//muss ich auch size und root gleichsetzen?
+				_compare = rhs._compare;
+				_pair_alloc = rhs.__pair_alloc;
+				_node_alloc = rhs._node_alloc;
+				for (const_iterator it = rhs.begin(); it != rhs.end(); ++it) {
+					insert(*it);
+				}
+			}
+				return *this;
+		}
+
+		~avl_tree(){}//muss man hier deallocaten?
 
 		node_pointer getRoot() const { return (this->_root); }
 
@@ -268,7 +284,7 @@ template<
 
 			// PART 1: Ordinary BST insert
 			curr = this->_node_alloc.allocate(1);
-			this->_node_alloc.construct(curr, node(key));
+			this->_pair_alloc.construct(&curr->data, value_type(key));
 
 			node_pointer y = NULL;
 			node_pointer x = this->_root;
@@ -324,6 +340,7 @@ template<
 			}
 			return (curr);
 		}
+		
 		node_pointer searchKey(node_pointer curr, key_type const & key) const {
 			while (curr) {
 				if (this->_compare(key, curr->data))
@@ -347,6 +364,13 @@ template<
 				parent->left = NULL;
 			else if (parent->right == child)
 				parent->right = NULL;
+		}
+
+		void destroynode(node_pointer curr) {
+			if (curr) {
+				this->_pair_alloc.destroy(&curr->data);
+				this->_node_alloc.deallocate(curr, 1);
+			}
 		}
 
 		node_pointer deletenodeHelper(node_pointer curr, value_type key) {
@@ -395,26 +419,33 @@ template<
 					updateBalance(deletedNode->parent);
 				else if (this->_root)
 					updateBalance(this->_root);
-				this->_node_alloc.destroy(deletedNode);
-				this->_node_alloc.deallocate(deletedNode, 1);
+				this->destroynode(deletedNode);
+				// this->_pair_alloc.destroy(&deletedNode->data);
+				// this->_node_alloc.deallocate(deletedNode, 1);
 				this->_size--;
 			}
 			else
 				std::cout << "Key not found." << std::endl;
 		}
 
-	// private:
-	// 	std::string getColorStr(int color) const {
-	// 		switch(color) {
-	// 			case 0: return (LIGHTGREEN);
-	// 			case 1: return (LIGHTBLUE);
-	// 			case 2: return (LIGHTYELLOW);
-	// 			case 3: return (LIGHTMAGENTA);
-	// 			case 4: return (LIGHTCYAN);
-	// 			default: return ("");
-	// 		}
-	// 	}
+		void clearHelper(node_pointer curr) {
+			if (curr == NULL)
+				return ;
+			clearHelper(curr->right);
+			clearHelper(curr->left);
+			destroynode(curr);
+		}
 
+		void clear() {
+			clearHelper(this->_root);
+			this->_size = 0;
+			this->_root = NULL;
+		}
+
+		size_type size() const{
+			return this->_size;
+		}
+		
 		void print2D(node_pointer curr, int space, std::string dir) const {
 			// Base case
 			if (curr == NULL)

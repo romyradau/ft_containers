@@ -68,7 +68,9 @@ template<
 		public:
 
 			// map(): avl(){};
-			~map(){};//This destroys all container elements, and deallocates all the storage capacity allocated by the map container using its allocator.
+			~map(){
+				clear();
+			};//This destroys all container elements, and deallocates all the storage capacity allocated by the map container using its allocator.
 			
 			// empty (1)
 			//comp = ein objekt mit dem ich die keys von den pairs vergleiche
@@ -101,8 +103,8 @@ template<
 
 			iterator			begin(){if (_avl.getRoot()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}
 			const_iterator			begin()const {if (_avl.getRoot()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}//durch den cast im map_iterator wird heir const zurueckgegeben
-			iterator			end(){return iterator(_avl.max_node( _avl.getRoot())->right);}
-			const_iterator			end()const {return iterator(_avl.max_node( _avl.getRoot())->right);}//durch den cast im map_iterator wird heir const zurueckgegeben
+			iterator			end(){if (empty()) return NULL; return iterator(_avl.max_node( _avl.getRoot())->right);}
+			const_iterator			end()const {if (empty()) return NULL; return iterator(_avl.max_node( _avl.getRoot())->right);}//durch den cast im map_iterator wird heir const zurueckgegeben
 			reverse_iterator	rbegin(){if (empty()) return rend(); return reverse_iterator(end());}
 			const_reverse_iterator	rbegin()const {if (empty()) return rend(); return const_reverse_iterator(end());}
 			reverse_iterator	rend(){return reverse_iterator(begin());}
@@ -110,7 +112,6 @@ template<
 
 			// single element (1)	
 			ft::pair<iterator,bool> insert (const value_type& val){
-
 
 				return (_avl.insert(val));
 			}
@@ -161,12 +162,57 @@ template<
 			}
 
 			bool empty() const{
-				if (begin() == end())
+				if (! this->_avl._size)
 					return true;
 				return false;
 			}
 
-			void printMap() const { this->_avl.printTree(); }
+
+
+			allocator_type get_allocator() const{
+				return this->_avl._pair_alloc;
+			}
+
+
+
+			void clear(){
+				this->_avl.clear();
+			}
+
+			size_type size() const{
+				return (this->_avl.size());
+			}
+
+     		// void erase (iterator position){
+			// 	this->_avl.deletenode(*position);
+			// }
+
+			size_type erase (const key_type& k){
+				iterator it = find(k);
+				if (it != end())
+					this->_avl.deletenode(*it);
+					return 1;
+				return 0;
+			}
+
+    		void erase (iterator first, iterator last){
+				for (; first!= last; first++)
+					erase(first);
+			}
+
+			iterator find (const key_type& k){
+				node_pointer res = this->_avl.searchKey(this->_avl.getRoot(), k);
+				return (iterator(res));
+			}
+
+			const_iterator find (const key_type& k) const{
+
+				node_pointer res = this->_avl.searchKey(this->_avl.getRoot(), k);
+				return (const_iterator(res));
+			}
+
+
+				void printMap() const { this->_avl.printTree(); }
 
 	};
 

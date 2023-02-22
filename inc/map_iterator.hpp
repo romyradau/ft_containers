@@ -57,11 +57,17 @@ namespace ft{
 			reference			operator*() {return it_ptr->data;}
 			const_reference		operator*()const {return it_ptr->data;}
 
-			map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(it_ptr->successor(it_ptr)));}
-			// map_iterator&		operator++(){if(!it_ptr) return *this; return(map_iterator(T::successor(it_ptr)));}
-
+			map_iterator&		operator++(){
+				if(it_ptr)
+					it_ptr = it_ptr->successor(it_ptr);
+				return *this;
+			}
 			map_iterator		operator++(int){map_iterator tmp = *this; ++*this; return tmp;}
-			map_iterator&		operator--(){if(!it_ptr) return *this; return(map_iterator(it_ptr->predecessor(it_ptr)));}
+			map_iterator&		operator--(){
+				if(it_ptr)
+					it_ptr = it_ptr->predecessor(it_ptr);
+				return(*this);
+			}
 			map_iterator		operator--(int){map_iterator tmp = *this; --*this; return tmp;}
 
 			};
