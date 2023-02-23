@@ -5,6 +5,7 @@
 #include "map_iterator.hpp"
 #include "reverse_iterator.hpp"
 #include <stdexcept>
+#include "algorithm.hpp"
 
 namespace ft{
 
@@ -45,6 +46,7 @@ template<
 			protected:
 			  Compare comp;
 			public:
+				value_compare() : comp() {}
 			  value_compare (Compare c) : comp(c) {}  // constructed with map's comparison object
 			  typedef bool result_type;
 			  typedef value_type first_argument_type;
@@ -93,11 +95,17 @@ template<
 
 			// copy (3)
 			// deep copy von einer bestehenden map
-			map (const map& other): avl_tree(other._avl){}
+			map (const map& other): _avl(other._avl){
+				for (const_iterator it = other.begin(); it != other.end(); ++it)
+					insert(*it);
+			}
 
 			map& operator= (const map& x){
 				if (this != &x)
-					this->_avl = x->_avl;
+					this->_avl = x._avl;
+				for (const_iterator it = x.begin(); it != x.end(); ++it) {
+					insert(*it);
+				}
 				return *this;
 			}
 
@@ -130,6 +138,11 @@ template<
 				for(;first != last; first++)
 					insert(*first);
 
+			}
+
+						// Observers
+			key_compare	key_comp() const {
+				return key_compare();
 			}
 
 			value_compare	value_comp() const {
@@ -183,9 +196,11 @@ template<
 				return (this->_avl.size());
 			}
 
-     		// void erase (iterator position){
-			// 	this->_avl.deletenode(*position);
-			// }
+     		void erase (iterator position){
+				this->_avl.deletenode(*position);
+				// this->_avl.deletenode(position->data);
+
+			}
 
 			size_type erase (const key_type& k){
 				iterator it = find(k);
@@ -208,11 +223,92 @@ template<
 			const_iterator find (const key_type& k) const{
 
 				node_pointer res = this->_avl.searchKey(this->_avl.getRoot(), k);
-				return (const_iterator(res));
+				return (iterator(res));
 			}
 
+			size_type	max_size() const {
+				return _avl._pair_alloc.max_size();
+			}
 
-				void printMap() const { this->_avl.printTree(); }
+			size_type count (const key_type& k) const{
+				if (_avl.searchKey(_avl.getRoot(), k))
+					return 1;
+				return 0;
+			}
+
+			void swap( map& other ){
+				_avl.swap(other._avl);
+			}
+
+			/*Returns a reference to the mapped value of the element with key equivalent to key.*/
+			iterator lower_bound(const key_type& key) 
+			{			
+				iterator it = begin();
+				while (_avl._compare(*it, key) && it != end())
+					++it;
+				return iterator(it);
+			}
+
+			const_iterator lower_bound(const key_type& key) const{
+				const_iterator it = begin();
+				while (_avl._compare(*it, key) && it != end())
+					++it;
+				return const_iterator(it);
+			}
+
+			iterator upper_bound(const key_type& key) {
+			iterator it = lower_bound(key);
+			if (!_avl._compare(*it, key) && !_avl._compare(key, *it))
+				++it;
+			return it;
+		}
+
+			const_iterator upper_bound(const key_type& key) const {
+			const_iterator it = lower_bound(key);
+			if(!_avl._compare(*it, key) && !_avl._compare(key, *it))
+				++it;
+			return it;
+		}
+
+		/*Returns a range containing all elements with the given key in the container.*/
+		ft::pair<iterator,iterator> equal_range(const key_type& key )
+			{return ft::make_pair(lower_bound(key), upper_bound(key)); }
+
+		/*Returns a range containing all elements with the given key in the container.*/
+		ft::pair<const_iterator, const_iterator> equal_range(const key_type& key ) const
+			{return ft::make_pair(lower_bound(key), upper_bound(key)); }
+
+			// template <class Key, class T, class Compare, class Alloc>
+			// bool	operator!=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+			// 	return !(lhs == rhs);
+			// }
+
+			// template <class Key, class T, class Compare, class Alloc>
+			// bool	operator<(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+			// 	return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+			// }
+
+			// template <class Key, class T, class Compare, class Alloc>
+			// bool	operator<=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+			// 	return !(lhs > rhs);
+			// }
+
+			// template <class Key, class T, class Compare, class Alloc>
+			// bool	operator>(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+			// 	return rhs < lhs;
+			// }
+
+			// template <class Key, class T, class Compare, class Alloc>
+			// bool	operator>=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+			// 	return !(lhs < rhs);
+			// }
+
+			// template <class Key, class T, class Compare, class Alloc>
+			// void	swap(map<Key, T, Compare, Alloc>& lhs, map<Key, T, Compare, Alloc>& rhs) {
+			// 	lhs.swap(rhs);
+			// }
+
+			void printMap() const { this->_avl.printTree(); }
 
 	};
 

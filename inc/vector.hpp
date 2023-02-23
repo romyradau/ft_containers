@@ -375,19 +375,19 @@ namespace ft{
 		}
 	}
 
-	template <class T>
-	void helper_swap ( T& a, T& b ){
-	  T c(a);
-	  a=b;
-	  b=c;
-	}
+	// template <class T>
+	// void helper_swap ( T& a, T& b ){
+	//   T c(a);
+	//   a=b;
+	//   b=c;
+	// }
 	
 	template<typename T, class Alloc>
 	void vector<T, Alloc>::swap (vector<T, Alloc>& x){
-		ft::helper_swap(this->_alloc, x._alloc);
-		ft::helper_swap(this->_cap, x._cap);
-		ft::helper_swap(this->_pointer, x._pointer);
-		ft::helper_swap(this->_size, x._size);
+		ft::swap(this->_alloc, x._alloc);
+		ft::swap(this->_cap, x._cap);
+		ft::swap(this->_pointer, x._pointer);
+		ft::swap(this->_size, x._size);
 
 	}
 

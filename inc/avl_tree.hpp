@@ -8,6 +8,7 @@
 #include "map_iterator.hpp"
 #include "pair.hpp"
 #include "reverse_iterator.hpp"
+#include "algorithm.hpp"
 
 
 
@@ -32,7 +33,10 @@ namespace ft {
 		ptr 						right;
 
 		node(value_type const & data = value_type()): data(data), parent(NULL), left(NULL), right(NULL) {}
+		// node(value_type const & data, ptr sentimental): data(data), parent(sentimental), left(sentimental), right(sentimental) {}
+//to implement the custom null pointer
 		node(node<T> const & src): data(src.data), parent(src.parent), left(src.left), right(src.right) {}
+
 		node & operator= (node const &rhs){
 			if (this != &rhs){
 				this->data = rhs.data;
@@ -79,17 +83,22 @@ namespace ft {
 		return par;
 		}
 	// find the predecessor of a given node
-		ptr predecessor(ptr x) {
+		ptr predecessor(ptr curr) {
 			// if the left subtree is not null,
 			// the predecessor is the rightmost node in the 
 			// left subtree
-			if (x->left != NULL) {
-				return max_node(x->left);
-			}
+		if (curr->left != NULL) {
+			return max_node(curr->left);
+		}
 
-			// int&	getBalance(void){return this->bf;}
+		ptr y = curr->parent;
+		while (y != NULL && curr == y->left) {
+			curr = y;
+			y = y->parent;
+		}
 
-			};
+		return y;
+	}
 	};
 
 
@@ -123,32 +132,37 @@ template<
 
 
 		node_pointer 													_root;
+		// node_pointer													_sentimental;
 		key_compare														_compare;//nicht dafuer da um etwas reinzuspeichern										
 		size_type														_size;
 		allocator_type													_pair_alloc;
 		node_allocator_type												_node_alloc;
 			//beim allocator den template type asugewechselt
 			//other ist ein allocator auf diesen type
-	// private:
+	private:
+		// void	be_sentimental(){
+		// 	_sentimental = _node_alloc.allocate(1);
+		// 	_pair_alloc.construct(&(_sentimental->data), value_type()); //wohin und was
+		// }
 	
 	public:
 		avl_tree(): _root(NULL), _compare(), _size(0), _pair_alloc(), _node_alloc() {}
 		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type(), const allocator_type& nalloc = node_allocator_type()): _root(NULL), _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(nalloc){}
+
 		avl_tree(avl_tree const &other): _root(other._root), _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){
-			for (const_iterator it = other.begin(); it != other.end(); ++it)
-				insert(*it);
+			// for (const_iterator it = other.begin(); it != other.end(); ++it)
+			// 	insert(*it);
 		}
 
 		avl_tree & operator=(avl_tree const &rhs){
 			if (this != &rhs) {
-				// clear();
-				//muss ich auch size und root gleichsetzen?
+				clear();
 				_compare = rhs._compare;
-				_pair_alloc = rhs.__pair_alloc;
+				_pair_alloc = rhs._pair_alloc;
 				_node_alloc = rhs._node_alloc;
-				for (const_iterator it = rhs.begin(); it != rhs.end(); ++it) {
-					insert(*it);
-				}
+				// for (const_iterator it = rhs.begin(); it != rhs.end(); ++it) {
+				// 	insert(*it);
+				// }
 			}
 				return *this;
 		}
@@ -244,33 +258,31 @@ template<
 		void rebalance(node_pointer curr) {
 			if (getBalanceFactor(curr) > 0) {
 				if (getBalanceFactor(curr->right) < 0) {
-					std::cout << "right left rotate" << std::endl;
 					rightRotate(curr->right);
 					leftRotate(curr);
-				} else {
-					std::cout << "left rotate" << std::endl;
+				} else
 					leftRotate(curr);
-				}
 			} 
 			else if (getBalanceFactor(curr) < 0) {
 				if (getBalanceFactor(curr->left) > 0) {
-					std::cout << "left right rotate" << std::endl;
 					leftRotate(curr->left);
 					rightRotate(curr);
-				} else {
-					std::cout << "right rotate" << std::endl;
+				} else
 					rightRotate(curr);
-				}
 			}
 		}
 
 		void updateBalance(node_pointer curr) {
 			if (getBalanceFactor(curr) < -1 || getBalanceFactor(curr) > 1) {
-				std::cout << "Rebalancing needed." << std::endl;
 				this->rebalance(curr);
 			}
 			if (curr->parent != NULL)
 				updateBalance(curr->parent);
+		}
+
+		void copyData(node_pointer dest, node_pointer src) {
+			this->_pair_alloc.destroy(&(dest->data));
+			this->_pair_alloc.construct(&(dest->data), src->data);
 		}
 
 		ft::pair<iterator,bool> insert(value_type key) {
@@ -284,7 +296,8 @@ template<
 
 			// PART 1: Ordinary BST insert
 			curr = this->_node_alloc.allocate(1);
-			this->_pair_alloc.construct(&curr->data, value_type(key));
+			this->_pair_alloc.construct(&curr->data, value_type(key));//calls constructor of value_type
+
 
 			node_pointer y = NULL;
 			node_pointer x = this->_root;
@@ -391,13 +404,13 @@ template<
 			// case 2: node has one child
 			else if (!curr->right) {
 				node_pointer tmp = curr->left;
-				curr->data = tmp->data;
+				copyData(curr, tmp);
 				curr->left = NULL;
 				curr = tmp;
 			}
 			else if (!curr->left) {
 				node_pointer tmp = curr->right;
-				curr->data = tmp->data;
+				copyData(curr, tmp);
 				curr->right = NULL;
 				curr = tmp;
 			}
@@ -405,7 +418,7 @@ template<
 			// case 3: node has two children
 			else {
 				node_pointer tmp = min_node(curr->right);
-				curr->data = tmp->data;
+				copyData(curr, tmp);
 				curr = deletenodeHelper(curr->right, curr->data);
 			}
 
@@ -446,6 +459,70 @@ template<
 			return this->_size;
 		}
 		
+		// template <class T>
+		// void helper_swap( T& a, T& b ){
+	  	// 	T c(a);
+	  	// 	a=b;
+	  	// 	b=c;
+		// }
+		void	swap(avl_tree & other) {
+			ft::swap(_root, other._root);
+			ft::swap(_size, other._size);
+			ft::swap(_compare, other._compare);
+			ft::swap(_pair_alloc, other._pair_alloc);
+			ft::swap(_node_alloc, other._node_alloc);
+			//was fehlt bei unserem  heir noch?
+
+			// if (_root)
+			// _root->parent = &_end;
+			// if (other._root)
+			// 	other._root->parent = &other._end;
+		}
+
+		// template <typename Key>
+		// iterator lower_bound(const Key& key)
+		// {
+		// 	iterator it = begin();
+		// 	while (_compare(*it, key) && it != end())
+		// 		++it;
+		// 	return iterator(it);	
+		// }
+
+		// template <typename Key>
+		// const_iterator lower_bound(const Key& key) const
+		// {
+		// 	const_iterator it = begin();
+		// 	while (_compare(*it, key) && it != end())
+		// 		++it;
+		// 	return const_iterator(it);
+		// }
+
+		// template <typename Key>
+		// iterator upper_bound(const Key& key)
+		// {
+		// 	iterator it = lower_bound(key);
+		// 	if (!_compare(*it, key) && !_compare(key, *it))
+		// 		++it;
+		// 	return it;
+		// }
+
+		// template <typename Key>
+		// const_iterator upper_bound(const Key& key) const
+		// {
+		// 	const_iterator it = lower_bound(key);
+		// 	if(!_compare(*it, key) && !_compare(key, *it))
+		// 		++it;
+		// 	return it;
+		// }
+
+		// template <typename Key>
+		// ft::pair<iterator,iterator> equal_range(const Key& key)
+		// {return ft::make_pair(lower_bound(key), upper_bound(key)); }
+
+		// template <typename Key>
+		// ft::pair<const_iterator, const_iterator> equal_range(const Key& key) const
+		// {return ft::make_pair(lower_bound(key), upper_bound(key)); }
+
 		void print2D(node_pointer curr, int space, std::string dir) const {
 			// Base case
 			if (curr == NULL)

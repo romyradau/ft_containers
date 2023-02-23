@@ -27,7 +27,6 @@ int main(){
 	std::cout << (insert_res.second ? "INSERTED" : "ALREADY INSERTED") << std::endl;
 	std::cout << m[42] << std::endl;
 	std::cout << m[22] << std::endl;
-	std::cout << "end" << std::endl;
 	m[22] = "222";
   	// try {
   	//   m.at(11)=100;      // vector::at throws an out-of-range
@@ -38,13 +37,14 @@ int main(){
   	// }
 	// ft::map<int, std::string> m2;
 	// m2.insert(begin_it, end_it);
-
+	std::cout << rev_begin_it->first << std::endl;
 	m.printMap();
 	ft::map<int, std::string>::iterator find_it = m.find(666);
 	// m.erase(find_it);
 	m.printMap();
 
-	// m.clear();
+	m.clear();
+	std::cout << "\n\n" << m.empty() << "\n\n" << std::endl;
 
 	// m2.printMap();
 

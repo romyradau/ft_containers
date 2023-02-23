@@ -15,6 +15,7 @@ namespace ft{
 			typedef T									value_type;
 			// typedef	const value_type					const_value_type;
 			typedef value_type*							pointer;
+			typedef ft::node<value_type>*				node_pointer;
 			typedef const pointer 						const_pointer;
 			typedef value_type&							reference;
 			typedef const value_type&					const_reference;
@@ -24,7 +25,7 @@ namespace ft{
 
 		private:
 			// pointer 			it_ptr;
-			ft::node<value_type>*	it_ptr;
+			node_pointer	it_ptr;
 
 		public:
 			map_iterator(): it_ptr(NULL){}
@@ -49,7 +50,7 @@ namespace ft{
 			friend bool					operator==(const map_iterator<Iter1> l, const map_iterator<Iter2> r) {return l.it_ptr == r.it_ptr;}
 			template< class Iter1, class Iter2 >
 			friend bool					operator!=(const map_iterator<Iter1> l, const map_iterator<Iter2> r) {return (l.it_ptr != r.it_ptr);}
-
+			node_pointer base(){return this->it_ptr;}
 			// *a
 			// a->m
 			pointer				operator->() {return &(operator*());}
