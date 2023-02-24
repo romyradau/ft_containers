@@ -46,10 +46,9 @@ namespace ft{
 
 			// a == b 
 			// a != b
-			template< class Iter1, class Iter2 >
-			friend bool					operator==(const map_iterator<Iter1> l, const map_iterator<Iter2> r) {return l.it_ptr == r.it_ptr;}
-			template< class Iter1, class Iter2 >
-			friend bool					operator!=(const map_iterator<Iter1> l, const map_iterator<Iter2> r) {return (l.it_ptr != r.it_ptr);}
+			friend bool					operator==(const map_iterator l, const map_iterator r) {return (l.it_ptr == r.it_ptr);}
+			friend bool					operator!=(const map_iterator l, const map_iterator r) {return (l.it_ptr != r.it_ptr);}
+			
 			node_pointer base(){return this->it_ptr;}
 			// *a
 			// a->m
@@ -63,12 +62,14 @@ namespace ft{
 					it_ptr = it_ptr->successor(it_ptr);
 				return *this;
 			}
+			
 			map_iterator		operator++(int){map_iterator tmp = *this; ++*this; return tmp;}
 			map_iterator&		operator--(){
 				if(it_ptr)
 					it_ptr = it_ptr->predecessor(it_ptr);
 				return(*this);
 			}
+			
 			map_iterator		operator--(int){map_iterator tmp = *this; --*this; return tmp;}
 
 			};

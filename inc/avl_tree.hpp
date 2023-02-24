@@ -31,11 +31,12 @@ namespace ft {
 		ptr 						parent;
 		ptr 						left;
 		ptr 						right;
+		ptr							nil;
 
-		node(value_type const & data = value_type()): data(data), parent(NULL), left(NULL), right(NULL) {}
+		node(value_type const & data = value_type()): data(data), parent(NULL), left(NULL), right(NULL), nil(NULL) {}
 		// node(value_type const & data, ptr sentimental): data(data), parent(sentimental), left(sentimental), right(sentimental) {}
 //to implement the custom null pointer
-		node(node<T> const & src): data(src.data), parent(src.parent), left(src.left), right(src.right) {}
+		node(node<T> const & src): data(src.data), parent(src.parent), left(src.left), right(src.right), nil(src.nil) {}
 
 		node & operator= (node const &rhs){
 			if (this != &rhs){
@@ -43,6 +44,7 @@ namespace ft {
 				this->parent = rhs.parent;
 				this->left = rhs.left;
 				this->right = rhs.right;
+				this->nil = rhs.nil;
 			}
 			return *this;
 		}
@@ -51,7 +53,7 @@ namespace ft {
 
 		// find the node with the minimum key
 		ptr min_node(ptr curr) {
-			while (curr->left != NULL) {
+			while (curr->left != curr->nil) {
 				curr = curr->left;
 			}
 			return (curr);
@@ -59,7 +61,8 @@ namespace ft {
 
 		// find the node with the maximum key
 		ptr max_node(ptr curr) {
-			while (curr->right != NULL) {
+			while (curr->right != curr->nil) {
+
 				curr = curr->right;
 			}
 			return (curr);
@@ -69,14 +72,15 @@ namespace ft {
 		// if the right subtree is not null,
 		// the successor is the leftmost node in the
 		// right subtree
-		if (curr->right != NULL) {
+		if (curr->right != curr->nil) {
 			return min_node(curr->right);
 		}
 
 		// else it is the lowest ancestor of curr whose
 		// left child is also an ancestor of curr.
 		ptr par = curr->parent;
-		while (par != NULL && curr == par->right) {
+		while (par != par->nil && curr == par->right) {
+
 			curr = par;
 			par = par->parent;
 		}
@@ -87,12 +91,13 @@ namespace ft {
 			// if the left subtree is not null,
 			// the predecessor is the rightmost node in the 
 			// left subtree
-		if (curr->left != NULL) {
+		if (curr->left != curr->nil) {
 			return max_node(curr->left);
 		}
 
 		ptr y = curr->parent;
-		while (y != NULL && curr == y->left) {
+		while (y != y->nil && curr == y->left) {
+
 			curr = y;
 			y = y->parent;
 		}
@@ -132,7 +137,7 @@ template<
 
 
 		node_pointer 													_root;
-		// node_pointer													_sentimental;
+		node_pointer													_sentimental;
 		key_compare														_compare;//nicht dafuer da um etwas reinzuspeichern										
 		size_type														_size;
 		allocator_type													_pair_alloc;
@@ -140,16 +145,30 @@ template<
 			//beim allocator den template type asugewechselt
 			//other ist ein allocator auf diesen type
 	private:
-		// void	be_sentimental(){
-		// 	_sentimental = _node_alloc.allocate(1);
-		// 	_pair_alloc.construct(&(_sentimental->data), value_type()); //wohin und was
-		// }
+
+		void	be_sentimental(){
+			_sentimental = _node_alloc.allocate(1);
+			_pair_alloc.construct(&(_sentimental->data), value_type()); //wohin und was
+			_sentimental->parent = _sentimental;
+			_sentimental->left = _sentimental;
+			_sentimental->right = _sentimental;
+			_sentimental->nil = _sentimental;
+		}
 	
 	public:
-		avl_tree(): _root(NULL), _compare(), _size(0), _pair_alloc(), _node_alloc() {}
-		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type(), const allocator_type& nalloc = node_allocator_type()): _root(NULL), _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(nalloc){}
+		avl_tree(): _compare(), _size(0), _pair_alloc(), _node_alloc() {
+			be_sentimental();
+			_root = _sentimental;
 
-		avl_tree(avl_tree const &other): _root(other._root), _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){
+		}
+		avl_tree(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type(), const allocator_type& nalloc = node_allocator_type()): _compare(comp), _size(0), _pair_alloc(alloc), _node_alloc(nalloc){
+			be_sentimental();
+			_root = _sentimental;
+		}
+
+		avl_tree(avl_tree const &other): _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){
+			be_sentimental();
+			_root = _sentimental;
 			// for (const_iterator it = other.begin(); it != other.end(); ++it)
 			// 	insert(*it);
 		}
@@ -167,7 +186,11 @@ template<
 				return *this;
 		}
 
-		~avl_tree(){}//muss man hier deallocaten?
+		~avl_tree(){
+			clear();
+			this->_pair_alloc.destroy(&(this->_sentimental->data));
+			this->_node_alloc.deallocate(this->_sentimental, 1);
+		}//muss man hier deallocaten?
 
 		node_pointer getRoot() const { return (this->_root); }
 
@@ -178,7 +201,7 @@ template<
 		}
 
 		int getHeight(node_pointer curr) const {
-			if (curr == NULL)
+			if (curr == this->_sentimental)
 				return (0);
 			return ( 1 + std::max( getHeight(curr->right), getHeight(curr->left) ) );
 		}
@@ -186,11 +209,11 @@ template<
 		void leftRotate(node_pointer x) {
 			node_pointer y = x->right;
 			x->right = y->left;
-			if (y->left != NULL) {
+			if (y->left != this->_sentimental) {
 				y->left->parent = x;
 			}
 			y->parent = x->parent;
-			if (x->parent == NULL) {
+			if (x->parent == this->_sentimental) {
 				this->_root = y;
 			} else if (x == x->parent->left) {
 				x->parent->left = y;
@@ -204,11 +227,11 @@ template<
 		void rightRotate(node_pointer x) {
 			node_pointer y = x->left;
 			x->left = y->right;
-			if (y->right != NULL) {
+			if (y->right != this->_sentimental) {
 				y->right->parent = x;
 			}
 			y->parent = x->parent;
-			if (x->parent == NULL) {
+			if (x->parent == this->_sentimental) {
 				this->_root = y;
 			} else if (x == x->parent->right) {
 				x->parent->right = y;
@@ -218,20 +241,37 @@ template<
 			y->right = x;
 			x->parent = y;
 		}
+		// find the node with the minimum key
+		static node_pointer min_node(node_pointer curr) {
+			while (curr->left != curr->nil) {
 
+				curr = curr->left;
+			}
+			return (curr);
+		}
+
+		// find the node with the maximum key
+		static node_pointer max_node(node_pointer curr) {
+			while (curr->right != curr->nil) {
+
+				curr = curr->right;
+			}
+			return (curr);
+		}
 
 	static node_pointer successor(node_pointer curr) {
 		// if the right subtree is not null,
 		// the successor is the leftmost node in the
 		// right subtree
-		if (curr->right != NULL) {
+		if (curr->right != curr->nil) {
 			return min_node(curr->right);
 		}
 
 		// else it is the lowest ancestor of curr whose
 		// left child is also an ancestor of curr.
 		node_pointer par = curr->parent;
-		while (par != NULL && curr == par->right) {
+		while (par != par->nil && curr == par->right) {
+
 			curr = par;
 			par = par->parent;
 		}
@@ -243,12 +283,13 @@ template<
 		// if the left subtree is not null,
 		// the predecessor is the rightmost node in the 
 		// left subtree
-		if (x->left != NULL) {
+		if (x->left != x->nil) {
 			return max_node(x->left);
 		}
 
 		node_pointer y = x->parent;
-		while (y != NULL && x == y->left) {
+		while (y != y->nil && x == y->left) {
+
 			x = y;
 			y = y->parent;
 		}
@@ -276,7 +317,7 @@ template<
 			if (getBalanceFactor(curr) < -1 || getBalanceFactor(curr) > 1) {
 				this->rebalance(curr);
 			}
-			if (curr->parent != NULL)
+			if (curr->parent != this->_sentimental)//realy double neccesssary?
 				updateBalance(curr->parent);
 		}
 
@@ -289,7 +330,7 @@ template<
 
 			node_pointer curr = search(key);
 
-			if (curr){
+			if (curr && curr != this->_sentimental){
 				iterator res(curr);
 				return (ft::make_pair<iterator, bool>(res, false));
 			}
@@ -297,12 +338,16 @@ template<
 			// PART 1: Ordinary BST insert
 			curr = this->_node_alloc.allocate(1);
 			this->_pair_alloc.construct(&curr->data, value_type(key));//calls constructor of value_type
+			curr->parent = this->_sentimental;
+			curr->left = this->_sentimental;
+			curr->right = this->_sentimental;
+			curr->nil = this->_sentimental;
 
-
-			node_pointer y = NULL;
+			node_pointer y = this->_sentimental;
 			node_pointer x = this->_root;
 
-			while (x != NULL) {
+			while (x != this->_sentimental) {
+
 				y = x;
 				if (this->_compare(curr->data, x->data))//damit nur das erste verglichen wird
 					x = x->left;
@@ -312,7 +357,7 @@ template<
 
 			// y is parent of x
 			curr->parent = y;
-			if (y == NULL)
+			if (y == this->_sentimental)
 				this->_root = curr;
 			else if (this->_compare(curr->data,y->data))
 				y->left = curr;
@@ -322,28 +367,16 @@ template<
 			// PART 2: re-balance the node if necessary
 			this->updateBalance(curr);
 			this->_size++;
+			this->_sentimental->parent = max_node(this->_root);
 			iterator res(curr);
 			return (ft::make_pair<iterator, bool>(res, true));
 		}
 
-		// find the node with the minimum key
-		static node_pointer min_node(node_pointer curr) {
-			while (curr->left != NULL) {
-				curr = curr->left;
-			}
-			return (curr);
-		}
 
-		// find the node with the maximum key
-		static node_pointer max_node(node_pointer curr) {
-			while (curr->right != NULL) {
-				curr = curr->right;
-			}
-			return (curr);
-		}
 
 		node_pointer searchHelper(node_pointer curr, value_type& key) const {
-			while (curr) {
+			while (curr && curr != this->_sentimental) {
+
 				if (this->_compare(key, curr->data))
 					curr = curr->left;
 				else if (this->_compare(curr->data, key))
@@ -355,7 +388,8 @@ template<
 		}
 		
 		node_pointer searchKey(node_pointer curr, key_type const & key) const {
-			while (curr) {
+			while (curr != this->_sentimental) {
+
 				if (this->_compare(key, curr->data))
 					curr = curr->left;
 				else if (this->_compare(curr->data, key))
@@ -374,13 +408,14 @@ template<
 
 		void removeChild(node_pointer& parent, node_pointer& child) {
 			if (parent->left == child)
-				parent->left = NULL;
+				parent->left = this->_sentimental;
 			else if (parent->right == child)
-				parent->right = NULL;
+				parent->right = this->_sentimental;
 		}
 
 		void destroynode(node_pointer curr) {
-			if (curr) {
+
+			if (curr != this->_sentimental) {//inconsistent
 				this->_pair_alloc.destroy(&curr->data);
 				this->_node_alloc.deallocate(curr, 1);
 			}
@@ -388,30 +423,30 @@ template<
 
 		node_pointer deletenodeHelper(node_pointer curr, value_type key) {
 			curr = searchHelper(curr, key);
-			if (!curr) return (NULL);
+			if (curr == this->_sentimental) return (curr);
 
 			node_pointer prev = curr->parent;
 
 			// case 1: leaf node
-			if (!curr->left && !curr->right) {
-				if (prev) {
+			if (curr->left == this->_sentimental && curr->right == this->_sentimental) {
+				if (prev != this->_sentimental) {
 					removeChild(prev, curr);
 				}
 				else 
-					this->_root = NULL;
+					this->_root = this->_sentimental;
 			}
 			
 			// case 2: node has one child
-			else if (!curr->right) {
+			else if (curr->right == this->_sentimental) {
 				node_pointer tmp = curr->left;
 				copyData(curr, tmp);
-				curr->left = NULL;
+				curr->left = this->_sentimental;
 				curr = tmp;
 			}
-			else if (!curr->left) {
+			else if (curr->left == this->_sentimental) {
 				node_pointer tmp = curr->right;
 				copyData(curr, tmp);
-				curr->right = NULL;
+				curr->right = this->_sentimental;
 				curr = tmp;
 			}
 
@@ -427,22 +462,20 @@ template<
 
 		void deletenode (value_type key) {
 			node_pointer deletedNode = deletenodeHelper(this->_root, key);
-			if (deletedNode) {
-				if (deletedNode->parent)
+			if (deletedNode != this->_sentimental) {
+				if (deletedNode->parent != this->_sentimental)
 					updateBalance(deletedNode->parent);
-				else if (this->_root)
+				else if (this->_root != this->_sentimental)
 					updateBalance(this->_root);
 				this->destroynode(deletedNode);
 				// this->_pair_alloc.destroy(&deletedNode->data);
 				// this->_node_alloc.deallocate(deletedNode, 1);
 				this->_size--;
 			}
-			else
-				std::cout << "Key not found." << std::endl;
 		}
 
 		void clearHelper(node_pointer curr) {
-			if (curr == NULL)
+			if (curr == this->_sentimental)
 				return ;
 			clearHelper(curr->right);
 			clearHelper(curr->left);
@@ -452,7 +485,7 @@ template<
 		void clear() {
 			clearHelper(this->_root);
 			this->_size = 0;
-			this->_root = NULL;
+			this->_root = this->_sentimental;
 		}
 
 		size_type size() const{
@@ -525,7 +558,7 @@ template<
 
 		void print2D(node_pointer curr, int space, std::string dir) const {
 			// Base case
-			if (curr == NULL)
+			if (curr == this->_sentimental)
 				return ;
 
 			// Increase distance between levels
