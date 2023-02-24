@@ -95,10 +95,8 @@ template<
 			// copy (3)
 			// deep copy von einer bestehenden map
 			map (const map& other): _avl(other._avl){
-				for (const_iterator it = other.begin(); it != other.end(); ++it){
-
+				for (const_iterator it = other.begin(); it != other.end(); ++it)
 					insert(*it);
-				}
 			}
 
 			map& operator= (const map& x){
@@ -111,13 +109,13 @@ template<
 				return *this;
 			}
 
-			iterator			begin(){if (!empty()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}
+			iterator				begin(){if (!empty()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}
 			const_iterator			begin()const {if (!empty()) return (iterator(_avl.min_node(_avl.getRoot()))); return this->end();}//durch den cast im map_iterator wird heir const zurueckgegeben
-			iterator			end(){if (empty()) return iterator(_avl._sentimental); return iterator(_avl.max_node( _avl.getRoot())->right);}
+			iterator				end(){if (empty()) return iterator(_avl._sentimental); return iterator(_avl.max_node( _avl.getRoot())->right);}
 			const_iterator			end()const {if (empty()) return iterator(_avl._sentimental); return iterator(_avl.max_node( _avl.getRoot())->right);}//durch den cast im map_iterator wird heir const zurueckgegeben
-			reverse_iterator	rbegin(){if (empty()) return rend(); return reverse_iterator(end());}
-			const_reverse_iterator	rbegin()const {if (empty()) return rend(); return const_reverse_iterator(end());}
-			reverse_iterator	rend(){return reverse_iterator(begin());}
+			reverse_iterator		rbegin(){return reverse_iterator(end());}
+			const_reverse_iterator	rbegin()const {return const_reverse_iterator(end());}
+			reverse_iterator		rend(){return reverse_iterator(begin());}
 			const_reverse_iterator	rend()const{return const_reverse_iterator(begin());}
 
 			// single element (1)	
@@ -161,20 +159,17 @@ template<
 
 			mapped_type& at (const key_type& k){
 
-				node_pointer success = this->_avl.searchKey(_avl.getRoot(), k);
-				if (success)
-					return success->data.second;
-				else
-					throw std::out_of_range("no matching key");
+				iterator it = find(k);
+				if (it != end())
+					return it->second;
+				throw std::out_of_range("no mapped key");
 			}
 
 			const mapped_type& at (const key_type& k) const{
-
-				node_pointer success = this->_avl.searchKey(_avl.getRoot(), k);
-				if (success)
-					return success->data.second;
-				else
-					throw std::out_of_range("no matching key");
+				const_iterator it = find(k);
+				if (it != end())
+					return it->second;
+				throw std::out_of_range("no mapped key");
 			}
 
 			bool empty() const{
@@ -207,15 +202,20 @@ template<
 
 			size_type erase (const key_type& k){
 				iterator it = find(k);
-				if (it != end())
+				if (it != end()){
 					this->_avl.deletenode(*it);
 					return 1;
+				}
 				return 0;
 			}
 
     		void erase (iterator first, iterator last){
-				for (; first!= last; first++){
-					erase(first);
+				map tmp(first, last);
+				iterator tmp_l = tmp.end();
+				iterator tmp_f = tmp.begin();
+				
+				for (; tmp_f != tmp_l; ++tmp_f) {
+					erase(tmp_f);
 				}
 			}
 
@@ -235,9 +235,9 @@ template<
 			}
 
 			size_type count (const key_type& k) const{
-				if (_avl.searchKey(_avl.getRoot(), k))
-					return 1;
-				return 0;
+				if (_avl.searchKey(_avl.getRoot(), k) == _avl._sentimental)
+					return 0;
+				return 1;
 			}
 
 			void swap( map& other ){

@@ -72,6 +72,8 @@ namespace ft {
 		// if the right subtree is not null,
 		// the successor is the leftmost node in the
 		// right subtree
+		if (curr == curr->nil)
+			return (curr->parent);
 		if (curr->right != curr->nil) {
 			return min_node(curr->right);
 		}
@@ -91,6 +93,8 @@ namespace ft {
 			// if the left subtree is not null,
 			// the predecessor is the rightmost node in the 
 			// left subtree
+		if (curr == curr->nil)
+			return (curr->parent);
 		if (curr->left != curr->nil) {
 			return max_node(curr->left);
 		}
@@ -166,7 +170,7 @@ template<
 			_root = _sentimental;
 		}
 
-		avl_tree(avl_tree const &other): _compare(other._compare), _size(other._size), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){
+		avl_tree(avl_tree const &other): _compare(other._compare), _size(0), _pair_alloc(other._pair_alloc), _node_alloc(other._node_alloc){
 			be_sentimental();
 			_root = _sentimental;
 			// for (const_iterator it = other.begin(); it != other.end(); ++it)
@@ -263,6 +267,8 @@ template<
 		// if the right subtree is not null,
 		// the successor is the leftmost node in the
 		// right subtree
+		if (curr == curr->nil)
+			return (curr->parent);
 		if (curr->right != curr->nil) {
 			return min_node(curr->right);
 		}
@@ -283,6 +289,8 @@ template<
 		// if the left subtree is not null,
 		// the predecessor is the rightmost node in the 
 		// left subtree
+		if (x == x->nil)
+			return (x->parent);
 		if (x->left != x->nil) {
 			return max_node(x->left);
 		}
@@ -435,7 +443,6 @@ template<
 				else 
 					this->_root = this->_sentimental;
 			}
-			
 			// case 2: node has one child
 			else if (curr->right == this->_sentimental) {
 				node_pointer tmp = curr->left;
@@ -456,7 +463,6 @@ template<
 				copyData(curr, tmp);
 				curr = deletenodeHelper(curr->right, curr->data);
 			}
-
 			return (curr);
 		}
 
@@ -470,6 +476,7 @@ template<
 				this->destroynode(deletedNode);
 				// this->_pair_alloc.destroy(&deletedNode->data);
 				// this->_node_alloc.deallocate(deletedNode, 1);
+				this->_sentimental->parent = max_node(this->_root);
 				this->_size--;
 			}
 		}
@@ -504,6 +511,7 @@ template<
 			ft::swap(_compare, other._compare);
 			ft::swap(_pair_alloc, other._pair_alloc);
 			ft::swap(_node_alloc, other._node_alloc);
+			ft::swap(_sentimental, other._sentimental);
 			//was fehlt bei unserem  heir noch?
 
 			// if (_root)
